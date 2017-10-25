@@ -1,0 +1,48 @@
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">First Name</th>
+      <th scope="col">Last Name</th>
+      <th scope="col">Username</th>
+    </tr>
+  </thead>
+  <tbody>
+	<% for (let i in users) { %>	
+	    <tr> 
+			<form>
+				<th class="updatable" scope="row"><%=i %></th>
+				<td><%= users[i].user.display_name %></td>
+				<td><%= users[i].user.id %></td>
+				<td class="updatable"><%= users[i].user.shufflePlaylistId %></td>
+				<td class="updatable"><%= users[i].user.radarPlaylistId %></td>
+				<td class="updatable"><%= users[i].user.isDefaultUserForShuffleAll %></td>
+				<td><button type="button" onclick="updateUser(this)">upd</button>  <button type="button" onclick="deleteUser('<%=i %>')">del</button></td>
+			</form>
+		</tr>
+	<%}%>
+  </tbody>
+</table>
+
+
+<script type="text/javascript">
+	function deleteUser (userName){
+		$.ajax({
+			url: '/delete/' + userName,
+			method: 'DELETE',
+			success: function(result) {
+				location.reload();
+			}
+		})
+	}
+	
+	function updateUser(context){
+
+		let form = $(context).closest('form');
+		console.log(form);
+		form.children('.updatable').each(function(){
+			let stringHtml = '<input type="text" value="'+$(this).text()+'">';
+			$(this).html(stringHtml);
+		});		
+	}
+</script>

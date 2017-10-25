@@ -1,0 +1,23 @@
+<form method="POST" action="/shuffleAll">
+	<input type="hidden" name="tracks" value="<%= JSON.stringify(tracksIndex)%>">
+	<button type="submit" class="btn btn-primary">Submit</button>
+	
+	<div class="row">
+		<% for (let i in artistsIndex) { %>	
+			<div class="form-check">
+				<div class="input-group" data-toggle="tooltip" data-html="true" title="<% for (let j in artistsIndex[i].tracks) { %><%=  artistsIndex[i].tracks[j] %></br><%}%>">
+					<span class="input-group-addon">
+						<label class="form-check-label">
+							<input class="form-check-input" 
+								type="checkbox" 
+								name="artist[]" 
+								value="<%= artistsIndex[i].id%>"
+							>
+							<%= artistsIndex[i].name%>
+						</label>
+					</span>
+		        </div>
+			</div>
+		<%}%>
+	</div>
+</form>

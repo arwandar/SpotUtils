@@ -1,0 +1,24 @@
+{
+    "name": "Spotify",
+    "version": "1.0.0",
+    "keywords": [
+        "util",
+        "functional"
+    ],
+    "author": "arwandar",
+    "contributors": [],
+    "dependencies": {
+        "console-stamp": "",
+        "express": "*",
+        "body-parser": "~1.10.1",
+        "ejs": "",
+        "express-authentication": "",
+        "express-authentication-basic": "",
+        "request": "",
+        "request-promise": "",
+        "querystring": "",
+        "bluebird": "",
+        "node-persist": "",
+        "random-js": ""
+    }
+}
