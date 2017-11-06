@@ -85,6 +85,59 @@ SpotifyInstance.prototype.generateMyShuffle = function (idPlaylist) {
 	});
 }
 
+SpotifyInstance.prototype.generateMyDoublons = function (idPlaylist) {
+	let self = this;
+	return new Promise(function (resolve, reject) {
+		self.collectSavedTracks()
+		.then(function (tracks) {
+			//console.log(tracks[0]);
+			//let tracksIndex = {},
+			let artistsIndex = {};
+			for (let i in tracks) {
+				let track = tracks[i];
+				if (!artistsIndex[track.artist_id]) {
+					artistsIndex[track.artist_id] = {
+						name: track.artist_name,
+						tracks: []
+					};
+				}
+				artistsIndex[track.artist_id].tracks.push(track);
+			}
+			
+			function clean(str){
+				str = str.toLowerCase();
+				str = str.replace(new RegExp('\\(', 'g'), '');
+				str = str.replace(new RegExp('\\)', 'g'), '');
+				str = str.replace(new RegExp(' ', 'g'), '');
+				str = str.replace(new RegExp('-', 'g'), '');
+				str = str.replace(new RegExp('deluxe', 'g'), '');
+				str = str.replace(new RegExp('remastered', 'g'), '');
+				return str
+			}
+			let result = [];
+			for (let i in artistsIndex){
+				for (let j in artistsIndex[i].tracks){
+					for (let k in artistsIndex[i].tracks){
+						if(clean(artistsIndex[i].tracks[j].name) == clean(artistsIndex[i].tracks[k].name) && j!=k){
+							result.push(artistsIndex[i].tracks[j]);
+							break;
+						}
+					}
+				}
+				
+			}
+			result.sort(function (a, b) {
+				return (clean(a.name) > clean(b.name))?1:-1;
+			});
+			
+			console.log(result);
+			return self.refillPlaylist(idPlaylist, result);
+			}).then(function () {
+			resolve()
+		});
+	});
+}
+
 SpotifyInstance.prototype.generateSortedShuffle = function (idPlaylist, tracks, toDeleteArtists) {
 	console.log('start createSortedParamShuffle');
 	let self = this;
@@ -222,11 +275,12 @@ SpotifyInstance.prototype.collectSavedTracks = function (tracks = [], uri = 'htt
 					name: body.items[i].track.name,
 					artist_id: body.items[i].track.artists[0].id,
 					artist_name: body.items[i].track.artists[0].name,
+					album_name: body.items[i].track.album.name,
 					note: random.integer(0, 10000)
 				})
 			}
 			let debug = false;
-			if (body.next != null && (!debug || tracks.length < 100)) {
+			if (body.next != null && (!debug || tracks.length < 500)) {
 				self.collectSavedTracks(tracks, body.next)
 				.then(function (result) {
 					resolve(result);

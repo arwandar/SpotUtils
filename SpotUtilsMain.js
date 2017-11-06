@@ -202,14 +202,15 @@ app.get('/shuffleAll', auth.required(), function(req, res) {
             artistsIndex = {};
 
         let artistToDelete = storage.getItemSync('artistToDelete');
-        if (!artistToDelete)
-            artistToDelete = '//';
+        if (!artistToDelete);
+            //artistToDelete = '//';
 
         for (let i in data) {
             for (let j in data[i]) {
                 let track = data[i][j];
                 if (!tracksIndex[track.id]) {
                     tracksIndex[track.id] = track;
+					/*
                     if (!artistsIndex[track.artist_id]) {
                         artistsIndex[track.artist_id] = {
                             name: track.artist_name,
@@ -220,6 +221,7 @@ app.get('/shuffleAll', auth.required(), function(req, res) {
                         }
                     }
                     artistsIndex[track.artist_id].tracks.push(track.name)
+					*/
                 }
             }
         }
@@ -245,7 +247,19 @@ app.get('/radar/:user/:playlist', auth.required(), function(req, res) {
     spotifyInstance[req.params.user].generateMyRadar(req.params.playlist)
         .then(function() {
             res.redirect('/');
-        })
+        }).catch(function(err) {
+            console.error('/radar', err)
+        });
+})
+
+app.get('/doublons/:user/:playlist', auth.required(), function(req, res) {
+    console.log('/doublons ' + req.params.user + ' ' + req.params.playlist);
+    spotifyInstance[req.params.user].generateMyDoublons(req.params.playlist)
+        .then(function() {
+            res.redirect('/');
+        }).catch(function(err) {
+            console.error('/doublons', err)
+        });
 })
 
 app.listen(expressPort, function() {

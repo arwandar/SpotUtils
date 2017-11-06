@@ -2,9 +2,12 @@
   <thead>
     <tr>
       <th scope="col">#</th>
-      <th scope="col">First Name</th>
-      <th scope="col">Last Name</th>
-      <th scope="col">Username</th>
+      <th scope="col">Name</th>
+      <th scope="col">SpotifyId</th>
+      <th scope="col">ShuffleId</th>
+      <th scope="col">RadarId</th>
+      <th scope="col">ShuffleAllId</th>
+      <th scope="col">isDefaultUser</th>
     </tr>
   </thead>
   <tbody>
@@ -17,6 +20,7 @@
 				<td class="updatable"><%= users[i].user.shufflePlaylistId %></td>
 				<td class="updatable"><%= users[i].user.radarPlaylistId %></td>
 				<td class="updatable"><%= users[i].user.isDefaultUserForShuffleAll %></td>
+				<td class="updatable"><%= users[i].user.shuffleAllPlaylistId %></td>
 				<td><button type="button" onclick="updateUser(this)">upd</button>  <button type="button" onclick="deleteUser('<%=i %>')">del</button></td>
 			</form>
 		</tr>
