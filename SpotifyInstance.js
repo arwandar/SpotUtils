@@ -59,8 +59,7 @@ SpotifyInstance.prototype.generateMyRadar = function (idPlaylist) {
 		self.collectFollowedArtists()
 		.then(function (artists) {
 			return self.getNewSongFromArtists(artists);
-		})
-		.then(function (tracks) {
+		}).then(function (tracks) {
 			return self.refillPlaylist(idPlaylist, tracks);
 		}).then(function () {
 			resolve();
@@ -274,7 +273,7 @@ SpotifyInstance.prototype.getNewSongFromArtist = function (artist) {
 			if (albums.length > 0) {
 				return reqprom({
 					url: 'https://api.spotify.com/v1/albums?' + querystring.stringify({
-						ids: albums,
+						ids: albums.toString(),
 						market: 'FR',
 					}),
 					headers: {
@@ -320,7 +319,11 @@ SpotifyInstance.prototype.getNewAlbumsFromArtist = function (artist) {
 			let result = []
 			if (body.albums.total != 0) {
 				for (let i in body.albums.items) {
-					result.push(body.albums.items[i].id);
+					for (let j in body.albums.items[i].artists) {
+						if (body.albums.items[i].artists[j].id == artist.id) {
+							result.push(body.albums.items[i].id);
+						}
+					}
 				}
 			}
 			resolve(result);
@@ -473,7 +476,6 @@ SpotifyInstance.prototype.refreshAccessToken = function (options) {
 			};
 		}
 		if (self.user.expires_in && self.user.expires_in > new Date()) {
-			console.log('token encore valide pour', self.user.name);
 			resolve();
 		} else {
 			reqprom(options).then(function (body) {
