@@ -2,23 +2,94 @@
 	<input type="hidden" name="tracks" value="<%= JSON.stringify(tracksIndex)%>">
 	<button type="submit" class="btn btn-primary">Submit</button>
 	
-	<div class="row">
+	<div class="btn-group" role="group" aria-label="Basic example">
+	<% for (let i in usersIndex) { %>
+		<button type="button" class="btn filter_<%= i %>" onclick="filter('<%= i %>')"><%= i %></button>
+	<% } %>
+		<button type="button" class="btn filter_all" onclick="filter('all')">shared</button>
+		<button type="button" class="btn btn-light" onclick="filterReset()">reset</button>
+	</div>
+	<div class="checkboxArtists"> 
+		<div class="row row_checked">
+		</div>
+
 		<% for (let i in artistsIndex) { %>	
-			<div class="form-check">
-				<div class="input-group" data-toggle="tooltip" data-html="true" title="<% for (let j in artistsIndex[i].tracks) { %><%=  artistsIndex[i].tracks[j] %></br><%}%>">
-					<span class="input-group-addon">
-						<label class="form-check-label">
-							<input class="form-check-input" 
-								type="checkbox" 
-								name="artist[]" 
-								value="<%= artistsIndex[i].id%>"
-								<% if (artistsIndex[i].toDelete) { %> checked="checked" <%}%>
-							>
-							<%= artistsIndex[i].name%>
-						</label>
-					</span>
-		        </div>
+			<div class=" row row_<%= i%>">	
+				<% for (let k in artistsIndex[i]) { %>	
+					<div class="form-check">
+						<div class="input-group" 
+							data-toggle="tooltip"
+							title="<% for (let j in artistsIndex[i][k].tracks) { %><%=  artistsIndex[i][k].tracks[j] %> <br> <%}%>" 
+							data-user="<%= artistsIndex[i][k].user%>"
+						>
+							<span class="input-group-addon">
+								<label class="form-check-label">
+									<input class="form-check-input" 
+										type="checkbox" 
+										name="artist[]" 
+										value="<%= artistsIndex[i][k].id%>"
+										<% if (artistsIndex[i][k].toDelete) { %> checked="checked" <%}%>
+									>
+									<%= artistsIndex[i][k].name%>
+								</label>
+							</span>
+						</div>
+					</div>
+				<%}%>
 			</div>
 		<%}%>
+
 	</div>
 </form>
+
+<script type="text/javascript">
+$( document ).ready(function() {
+	$('[data-toggle="tooltip"]').tooltip({'html':true});
+	
+	let j = 0, color;
+	<% for (let i in usersIndex) { %>
+	color = getRandomColor();
+	$('.filter_<%= i %>').css('background-color', color);
+	$('.checkboxArtists [data-user="<%= i %>"]').children().css('background-color', color);
+	<% } %>
+	color = getRandomColor();
+	$('.filter_all').css('background-color', color);
+	$('.checkboxArtists [data-user="all"]').children().css('background-color', color);	
+	
+	
+	$('.checkboxArtists input[type="checkbox"]:checked').each(function(){
+		$('.row_checked').append($(this).parents('.form-check'));
+	})	
+});
+
+function filter(userName){
+	$('.checkboxArtists [data-user]').parent().hide();
+	$('.checkboxArtists [data-user="' + userName + '"]').parent().show();
+}
+
+function filterReset(userName){
+	$('.checkboxArtists [data-user]').parent().show();
+}
+
+function getRandomColor(){
+	let h = (Math.random() * 0.618033988749895 ) % 1;
+	let h_i = parseInt(h)
+	let f = h*6 - h_i;
+	let s = 0.3;
+	let v = 0.99;
+	
+	let p = v * (1 - s);
+	let q = v * (1 - f*s);
+	let t = v * (1 - (1 - f) * s);
+	let r,g,b;
+	switch(~~f % 6){
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+    }
+    return "#" + ("00" + (~~(r * 255)).toString(16)).slice(-2) + ("00" + (~~(g * 255)).toString(16)).slice(-2) + ("00" + (~~(b * 255)).toString(16)).slice(-2);
+}
+</script>

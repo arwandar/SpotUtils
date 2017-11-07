@@ -140,34 +140,56 @@ app.get('/customShuffleAll', auth.required(), function(req, res) {
                     if (!artistsIndex[track.artist_id]) {
                         artistsIndex[track.artist_id] = {
                             name: track.artist_name,
-                            tracks: []
+                            tracks: [],
                         };
-                        if (artistToDelete.indexOf('/' + track.artist_id + '/') >= 0) {
-                            artistsIndex[track.artist_id].toDelete = true;
-                        }
+
+                        artistsIndex[track.artist_id].toDelete = (artistToDelete.indexOf('/' + track.artist_id + '/') >= 0);
                     }
                     artistsIndex[track.artist_id].tracks.push(track.name)
-                }
+                }				
+				artistsIndex[track.artist_id].user = artistsIndex[track.artist_id].user !== undefined && artistsIndex[track.artist_id].user != spotifyInstanceTable[i].user.name ? 'all' : spotifyInstanceTable[i].user.name;
             }
         }
 
-        let artistsTable = [];
+        let artistsTable = [], tmp = {};
         for (let i in artistsIndex) {
-            artistsTable.push({
+			let letter = artistsIndex[i].name.slice(0,1);
+			
+			if (!isNaN(letter)){
+				letter = 0;
+			} 
+			if (!tmp[letter]){
+				tmp[letter] = [];
+			}
+			
+            tmp[letter].push({
                 id: i,
                 name: artistsIndex[i].name,
                 tracks: artistsIndex[i].tracks,
-                toDelete: artistsIndex[i].toDelete || false
+                toDelete: artistsIndex[i].toDelete,
+				user: artistsIndex[i].user
             });
         }
+		
+		for (let i in tmp){
+			artistsTable.push(tmp[i]);
+		}		
+		
+		artistsTable.sort(function(a, b) {
+			return a[0].name.localeCompare(b[0].name);
+		});
+		
+		for (let i in artistsTable){
+			artistsTable[i].sort(function(a, b) {
+				return a.name.localeCompare(b.name);
+			});
+		}
 
-        artistsTable.sort(function(a, b) {
-            return a.name.localeCompare(b.name);
-        });
         res.status(200).render('index.ejs', {
             template: 'customShuffleAll',
             'artistsIndex': artistsTable,
-            'tracksIndex': tracksIndex
+            'tracksIndex': tracksIndex,
+			'usersIndex': spotifyInstance
         });
     })
 
