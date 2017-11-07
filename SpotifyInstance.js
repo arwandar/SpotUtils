@@ -279,7 +279,7 @@ SpotifyInstance.prototype.collectSavedTracks = function (tracks = [], uri = 'htt
 					note: random.integer(0, 10000)
 				})
 			}
-			let debug = true;
+			let debug = false;
 			if (body.next != null && (!debug || tracks.length < 500)) {
 				self.collectSavedTracks(tracks, body.next)
 				.then(function (result) {
