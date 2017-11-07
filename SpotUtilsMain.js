@@ -153,7 +153,7 @@ app.get('/customShuffleAll', auth.required(), function(req, res) {
 
         let artistsTable = [], tmp = {};
         for (let i in artistsIndex) {
-			let letter = artistsIndex[i].name.slice(0,1);
+			let letter = artistsIndex[i].name.slice(0,1).toLowerCase();
 			
 			if (!isNaN(letter)){
 				letter = 0;
@@ -176,7 +176,7 @@ app.get('/customShuffleAll', auth.required(), function(req, res) {
 		}		
 		
 		artistsTable.sort(function(a, b) {
-			return a[0].name.localeCompare(b[0].name);
+			return a[0].name.toLowerCase().localeCompare(b[0].name.toLowerCase());
 		});
 		
 		for (let i in artistsTable){
