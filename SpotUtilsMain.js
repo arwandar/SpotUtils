@@ -25,6 +25,11 @@ storage.init({
 }).then(function() {
     //storage.clearSync();
     spotParams = storage.getItemSync('spotParams');
+	if (!spotParams){
+		storage.setItemSync('spotParams');
+		console.error('Merci de remplir le fichier de storage spotParams avec les éléments du readme')
+	}
+	
     let users = storage.valuesWithKeyMatch(/user\_/);
 
     for (let i in users) {
@@ -47,6 +52,7 @@ app.use(express.static('public'))
         if (challenge.username === 'Pixelle' && challenge.password === 'Batou') {
             callback(null, true, {});
         } else {
+			console.error("problème sur l'authentification");
             callback(null, false, {
                 error: 'INVALID_PASSWORD'
             });
@@ -70,13 +76,21 @@ app.get('/choree', auth.required(), function(req, res) {
     });
 })
 
+app.get('/playAlarm/:user/:playlist', auth.required(), function(req, res) {
+    res.status(200).send();
+	spotifyInstance[req.params.user].startPlayingPlaylist(req.params.playlist, spotParams.raspberry)
+	.then(function() {
+		console.log('done');
+	})
+})
+
 app.get('/playHHYAt/:time/:delay', auth.required(), function(req, res) {
     res.status(200).send();
     console.log('playHHYAt', req.params.time);
 
     Promise.delay(req.params.delay)
         .then(function() {
-            return spotifyInstance.arwy.startPlaying('spotify:track:2Ox2qwN0Yva5G0FLBPfU8X', '3544db8ff0c82540953ea8546c2b7da4f4233bc0')
+            return spotifyInstance.arwy.startPlayingTrack('spotify:track:2Ox2qwN0Yva5G0FLBPfU8X', '3544db8ff0c82540953ea8546c2b7da4f4233bc0')
         }).then(function() {
             return spotifyInstance.arwy.startPlayingAt(req.params.time);
         }).then(function() {
@@ -224,26 +238,15 @@ app.get('/shuffleAll', auth.required(), function(req, res) {
             artistsIndex = {};
 
         let artistToDelete = storage.getItemSync('artistToDelete');
-        if (!artistToDelete);
-            //artistToDelete = '//';
+        if (!artistToDelete)
+            artistToDelete = '//';
 
         for (let i in data) {
             for (let j in data[i]) {
                 let track = data[i][j];
                 if (!tracksIndex[track.id]) {
                     tracksIndex[track.id] = track;
-					/*
-                    if (!artistsIndex[track.artist_id]) {
-                        artistsIndex[track.artist_id] = {
-                            name: track.artist_name,
-                            tracks: []
-                        };
-                        if (artistToDelete.indexOf('/' + track.artist_id + '/') >= 0) {
-                            artistsIndex[track.artist_id].toDelete = true;
-                        }
-                    }
-                    artistsIndex[track.artist_id].tracks.push(track.name)
-					*/
+
                 }
             }
         }

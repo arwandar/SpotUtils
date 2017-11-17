@@ -10,6 +10,8 @@ var SpotifyInstance = function (spotParams, user = {}) {
 	this.spotParams = spotParams;
 };
 
+const debug = false;
+
 SpotifyInstance.prototype.finalizeAuthentification = function (code, pseudo) {
 	let self = this;
 	return new Promise(function (resolve, reject) {
@@ -163,7 +165,7 @@ SpotifyInstance.prototype.generateSortedShuffle = function (idPlaylist, tracks, 
 	})
 }
 
-SpotifyInstance.prototype.startPlaying = function (uri, idDevice = false) {
+SpotifyInstance.prototype.startPlayingTrack = function (uri, idDevice = false) {
 	console.log('start startPlaying');
 	let self = this;
 	return new Promise(function (resolve, reject) {
@@ -181,8 +183,40 @@ SpotifyInstance.prototype.startPlaying = function (uri, idDevice = false) {
 				json: true
 			};
 			if (idDevice) {
-				opt.body.url += "?device_id=" + idDevice;
+				opt.url += "?device_id=" + idDevice;
 			}
+			return reqprom(opt);
+		}).then(function () {
+			console.log('done');
+			resolve();
+		}).catch (function (err) {
+			console.error('erreur lors de startPlaying', err);
+			reject();
+		});
+	})
+}
+
+SpotifyInstance.prototype.startPlayingPlaylist = function (uri, idDevice = false) {
+	console.log('start startPlaying');
+	let self = this;
+	return new Promise(function (resolve, reject) {
+		self.refreshAccessToken().then(function () {
+			let opt = {
+				url: 'https://api.spotify.com/v1/me/player/play',
+				method: 'PUT',
+				headers: {
+					'Authorization': 'Bearer ' + self.user.access_token,
+					'Content-Type': 'application/json'
+				},
+				body: {
+					'context_uri': uri,
+				},
+				json: true
+			};
+			if (idDevice) {
+				opt.url += "?device_id=" + idDevice;
+			}
+			console.log(opt.url)
 			return reqprom(opt);
 		}).then(function () {
 			console.log('done');
@@ -279,7 +313,6 @@ SpotifyInstance.prototype.collectSavedTracks = function (tracks = [], uri = 'htt
 					note: random.integer(0, 10000)
 				})
 			}
-			let debug = false;
 			if (body.next != null && (!debug || tracks.length < 500)) {
 				self.collectSavedTracks(tracks, body.next)
 				.then(function (result) {
