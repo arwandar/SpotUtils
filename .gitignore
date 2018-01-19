@@ -64,3 +64,6 @@ package-lock.json
 
 autostart.sh
 
+.idea
+
+dist/

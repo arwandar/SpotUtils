@@ -1,24 +1,34 @@
 {
-    "name": "Spotify",
-    "version": "1.0.0",
-    "keywords": [
-        "util",
-        "functional"
-    ],
-    "author": "arwandar",
-    "contributors": [],
-    "dependencies": {
-        "console-stamp": "",
-        "express": "*",
-        "body-parser": "~1.10.1",
-        "ejs": "",
-        "express-authentication": "",
-        "express-authentication-basic": "",
-        "request": "",
-        "request-promise": "",
-        "querystring": "",
-        "bluebird": "",
-        "node-persist": "",
-        "random-js": ""
-    }
+  "name": "Spotify",
+  "version": "1.0.0",
+  "keywords": [
+    "util",
+    "functional"
+  ],
+  "author": "arwandar",
+  "contributors": [],
+  "dependencies": {
+    "bluebird": "",
+    "body-parser": "~1.10.1",
+    "console-stamp": "",
+    "ejs": "",
+    "express": "*",
+    "express-authentication": "",
+    "express-authentication-basic": "",
+    "node-persist": "",
+    "querystring": "",
+    "random-js": "",
+    "request": "",
+    "request-promise": ""
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files",
+    "start": "npm run build && node dist/SpotUtilsMain.js"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "rimraf": "^2.6.2"
+  }
 }
