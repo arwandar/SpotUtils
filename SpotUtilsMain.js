@@ -73,32 +73,12 @@ app.get('/users', auth.required(), function (req, res) {
     });
 });
 
-app.get('/choree', auth.required(), function (req, res) {
-    res.status(200).render('index.ejs', {
-        template: 'choree'
-    });
-});
-
 app.get('/playAlarm/:user/:playlist', auth.required(), function (req, res) {
     res.status(200).send();
     spotifyInstance[req.params.user].startPlayingPlaylist(req.params.playlist, spotParams.raspberry)
         .then(function () {
             console.log('done');
         })
-});
-
-app.get('/playHHYAt/:time/:delay', auth.required(), function (req, res) {
-    res.status(200).send();
-    console.log('playHHYAt', req.params.time);
-
-    Promise.delay(req.params.delay)
-        .then(function () {
-            return spotifyInstance.arwy.startPlayingTrack('spotify:track:2Ox2qwN0Yva5G0FLBPfU8X', '3544db8ff0c82540953ea8546c2b7da4f4233bc0')
-        }).then(function () {
-        return spotifyInstance.arwy.startPlayingAt(req.params.time);
-    }).then(function () {
-        console.log('done');
-    })
 });
 
 //PROCESSUS DE LOGIN
