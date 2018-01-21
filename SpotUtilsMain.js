@@ -25,7 +25,7 @@ let spotParams;
 
 storage.init({
     logging: true,
-    dir: './.node-persist/storage',
+    dir: '../.node-persist/storage',
 }).then(function () {
     //storage.clearSync();
     spotParams = storage.getItemSync('spotParams');
