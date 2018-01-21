@@ -24,7 +24,8 @@ let spotifyInstance = {};
 let spotParams;
 
 storage.init({
-    logging: true
+    logging: true,
+    dir: './.node-persist/storage',
 }).then(function () {
     //storage.clearSync();
     spotParams = storage.getItemSync('spotParams');

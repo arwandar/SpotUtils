@@ -475,7 +475,7 @@ SpotifyInstance.prototype.refillPlaylist = function (idPlaylist, tracks) {
             resolve();
         tracks = self.cleanTracksForCall(tracks);
 
-        opt = {
+        let opt = {
             url: 'https://api.spotify.com/v1/users/' + self.user.id + '/playlists/' + idPlaylist + '/tracks',
             method: 'PUT',
             headers: {
@@ -510,7 +510,7 @@ SpotifyInstance.prototype.addTracksToPlaylist = function (idPlaylist, tracks) {
             resolve();
 
         tracks = self.cleanTracksForCall(tracks);
-        opt = {
+        let opt = {
             url: 'https://api.spotify.com/v1/users/' + self.user.id + '/playlists/' + idPlaylist + '/tracks',
             method: 'POST',
             headers: {
