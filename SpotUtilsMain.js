@@ -1,22 +1,16 @@
-import bodyParser from "body-parser";
-import storage from "node-persist";
-import express from "express";
-import queryString from "querystring";
-import SpotifyInstance from "./SpotifyInstance";
-import Promise from "bluebird";
-import auth from "express-authentication";
-import basic from "express-authentication-basic";
-import console_stamp from "console-stamp";
+import bodyParser from 'body-parser'
+import storage from 'node-persist'
+import express from 'express'
+import queryString from 'querystring'
+import SpotifyInstance from './SpotifyInstance'
+import Promise from 'bluebird'
+import auth from 'express-authentication'
+import basic from 'express-authentication-basic'
+import console_stamp from 'console-stamp'
 
 console_stamp(console, {
     pattern: "dd/mm/yyyy HH:MM:ss.l"
 });
-
-/*
-const urlencodedParser = bodyParser.urlencoded({
-    extended: false
-});
-*/
 
 const expressPort = 3003;
 let spotifyInstance = {};
@@ -239,6 +233,89 @@ app.get('/shuffleAll', auth.required(), function (req, res) {
     });
 });
 
+app.get('/customRockAmRing/:user/:playlist', auth.required(), function (req, res) {
+  console.log('/customRckAmRing ' + req.params.user)
+  let rockAmRingSettings = storage.getItemSync('rockAmRingSettings')
+
+  let artistsTable = [], tmp = {}
+  for (let i in rockAmRingSettings.artists) {
+    let letter = rockAmRingSettings.artists[i].name.slice(0, 1).toLowerCase()
+
+    if (!isNaN(letter)) {
+      letter = 0
+    }
+    if (!tmp[letter]) {
+      tmp[letter] = []
+    }
+
+    tmp[letter].push({
+      id: i,
+      name: rockAmRingSettings.artists[i].name,
+      genres: rockAmRingSettings.artists[i].genres,
+      followers: rockAmRingSettings.artists[i].followers,
+    })
+  }
+
+  for (let i in tmp) {
+    artistsTable.push(tmp[i])
+  }
+
+  artistsTable.sort(function (a, b) {
+    return a[0].name.toLowerCase().localeCompare(b[0].name.toLowerCase())
+  })
+
+  for (let i in artistsTable) {
+    artistsTable[i].sort(function (a, b) {
+      return a.name.localeCompare(b.name)
+    })
+  }
+
+  res.status(200).render('index.ejs', {
+    template: 'customRockAmRing',
+    params: req.params.user + '/' + req.params.playlist,
+
+    artists: artistsTable,
+    selectedArtists: rockAmRingSettings.users && rockAmRingSettings.users[req.params.user] ? rockAmRingSettings.users[req.params.user].join(',') : ''
+  })
+})
+
+app.post('/rockAmRing/:user/:playlist', auth.required(), function (req, res) {
+  console.log('/rockAmRing ' + req.params.user)
+  console.log('/rockAmRing', req.body.artists)
+
+  let artists = req.body.artists
+
+  if (req.body.newArtist) {
+    spotifyInstance[req.params.user].addNewArtistsRockAmRing(req.body.newArtist)
+      .then(function () {
+        let rockAmRingSettings = storage.getItemSync('rockAmRingSettings')
+        console.log(rockAmRingSettings.artists)
+        for (let i in req.body.newArtist) {
+          if (req.body.newArtist[i].checked) {
+            artists.push(req.body.newArtist[i].id)
+          }
+        }
+
+        rockAmRingSettings.users[req.params.user] = artists
+        storage.setItemSync('rockAmRingSettings', rockAmRingSettings)
+        spotifyInstance[req.params.user].generateMyRockAmRing(req.params.playlist, artists)
+
+      })
+  } else {
+    let rockAmRingSettings = storage.getItemSync('rockAmRingSettings')
+    rockAmRingSettings.users[req.params.user] = req.body.artists
+    storage.setItemSync('rockAmRingSettings', rockAmRingSettings)
+    spotifyInstance[req.params.user].generateMyRockAmRing(req.params.playlist, req.body.artists)
+  }
+  res.redirect('/customRockAmRing/' + req.params.user + '/' + req.params.playlist)
+})
+
+app.get('/rockAmRing/:user/:playlist', auth.required(), function (req, res) {
+  console.log('/rockAmRing ' + req.params.user)
+  let rockAmRingSettings = storage.getItemSync('rockAmRingSettings')
+  spotifyInstance[req.params.user].generateMyRockAmRing(req.params.playlist, rockAmRingSettings.users[req.params.user])
+})
+
 app.get('/shuffle/:user/:playlist', auth.required(), function (req, res) {
     console.log('/shuffle ' + req.params.user + ' ' + req.params.playlist);
     spotifyInstance[req.params.user].generateMyShuffle(req.params.playlist)
@@ -268,12 +345,6 @@ app.get('/doublons/:user/:playlist', auth.required(), function (req, res) {
         }).catch(function (err) {
         console.error('/doublons', err)
     });
-});
-
-app.get('/refreshTokens/:user', function (req, res) {
-    spotifyInstance[req.params.user].refreshAccessToken().then(function () {
-        res.send(JSON.stringify({access_token: storage.getItemSync('user_' + req.params.user).access_token}));
-    })
 });
 
 app.listen(expressPort, function () {

@@ -1,8 +1,8 @@
-import storage from "node-persist";
-import requestPromise from "request-promise";
-import queryString from "querystring";
-import Random from "random-js";
-import Promise from "bluebird";
+import storage from 'node-persist'
+import requestPromise from 'request-promise'
+import queryString from 'querystring'
+import Random from 'random-js'
+import Promise from 'bluebird'
 
 const random = new Random(Random.engines.mt19937().autoSeed());
 
@@ -423,6 +423,78 @@ SpotifyInstance.prototype.getNewAlbumsFromArtist = function (artist) {
 
     })
 };
+
+SpotifyInstance.prototype.addNewArtistsRockAmRing = function (newArtists) {
+  return new Promise((resolve, reject) => {
+    let artistsTable = {}
+    for (let i in newArtists) {
+      let x = newArtists[i]
+      if (x.id.match(/https:\/\/open\.spotify\.com\/artist\/([\w-]+)/)) {
+        artistsTable[x.id.match(/https:\/\/open\.spotify\.com\/artist\/([\w-]+)/)[1]] = x.id.match(/https:\/\/open\.spotify\.com\/artist\/([\w-]+)/)[1]
+      } else if (x.id.match(/([\w-]+)/)) {
+        artistsTable[x.id] = x.id
+      }
+    }
+
+    this.refreshAccessToken().then(() => {
+      return this.getInfoArtists(artistsTable)
+    }).then(artists => {
+      let data = storage.getItemSync('rockAmRingSettings')
+      Object.keys(artists).forEach((artistId) => {
+        let artist = artists[artistId]
+        data.artists[artist.id] = {
+          id: artist.id,
+          genres: artist.genres.join(', '),
+          name: artist.name,
+          followers: artist.followers.total
+        }
+      })
+      storage.setItemSync('rockAmRingSettings', data)
+      resolve()
+    })
+  })
+}
+
+SpotifyInstance.prototype.generateMyRockAmRing = function (playlist, artists) {
+  return new Promise((resolve, reject) => {
+    this.refreshAccessToken().then(() => {
+      Promise.map(artists, (artist) => {
+        return this.getArtistTopSongs(artist)
+      }).then(data => {
+        let tracks = data.reduce((accu, tracksList) => accu.concat(tracksList))
+        tracks.sort(function (a, b) {
+          return b.note - a.note
+        })
+        return this.refillPlaylist(playlist, tracks)
+      }).then(() => {
+        console.log('miaw')
+        resolve()
+      })
+    })
+  })
+}
+
+SpotifyInstance.prototype.getArtistTopSongs = function (artistId) {
+  return new Promise((resolve, reject) => {
+    let opt = {
+      url: 'https://api.spotify.com/v1/artists/' + artistId + '/top-tracks?country=FR',
+      headers: {
+        'Authorization': 'Bearer ' + this.user.access_token,
+      },
+      json: true
+    }
+    requestPromise(opt)
+      .then(function (body) {
+        let result = body.tracks.map(x => {return {uri: x.uri, note: random.integer(0, 10000)}})
+        resolve(result)
+      }).catch(function (err) {
+      console.error('erreur lors de getArtistTopSongs ' + artistId, err)
+      reject()
+    })
+
+  })
+}
+
 
 SpotifyInstance.prototype.getInfoArtists = function (artistsIndex, artistsTable) {
     let self = this;
