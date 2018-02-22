@@ -3,6 +3,7 @@ import requestPromise from 'request-promise'
 import queryString from 'querystring'
 import Random from 'random-js'
 import Promise from 'bluebird'
+import moment from 'moment'
 
 const random = new Random(Random.engines.mt19937().autoSeed());
 
@@ -63,7 +64,25 @@ SpotifyInstance.prototype.generateMyRadar = function (idPlaylist) {
             .then(function (artists) {
                 return self.getNewSongFromArtists(artists);
             }).then(function (tracks) {
-            return self.refillPlaylist(idPlaylist, tracks);
+              let oldTracks = storage.getItemSync('RadarTracks')
+              console.log('oldTracks', oldTracks)
+              oldTracks = oldTracks ? oldTracks : {}
+
+              let newTracks = tracks.filter(track => {
+                let trackId = track.match(/.*:.*:(\w*)/)[1]
+                console.log(trackId, oldTracks.hasOwnProperty(trackId))
+                console.log(oldTracks[trackId], moment(oldTracks[trackId]).format())
+                console.log(moment().subtract(6, 'days').format())
+                return !oldTracks.hasOwnProperty(trackId) || moment(oldTracks[trackId]) > moment().subtract(6, 'days')
+              })
+
+              storage.setItemSync('RadarTracks', newTracks.reduce((accu, track) => {
+                let trackId = track.match(/.*:.*:(\w*)/)[1]
+                if (!accu.hasOwnProperty(trackId))
+                  accu[trackId] = moment().format()
+                return accu
+              }, oldTracks))
+            return self.refillPlaylist(idPlaylist, newTracks);
         }).then(function () {
             resolve();
         }).catch(function (err) {

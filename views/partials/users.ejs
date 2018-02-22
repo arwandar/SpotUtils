@@ -43,7 +43,6 @@
 	function updateUser(context){
 
 		let form = $(context).closest('form');
-		console.log(form);
 		form.children('.updatable').each(function(){
 			let stringHtml = '<input type="text" value="'+$(this).text()+'">';
 			$(this).html(stringHtml);

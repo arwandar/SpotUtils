@@ -189,7 +189,6 @@ app.get('/customShuffleAll', auth.required(), function (req, res) {
 
 app.post('/shuffleAll', auth.required(), function (req, res) {
     console.log('shuffleAll');
-    console.log(req.body);
     let tracksIndex = JSON.parse(req.body.tracks);
     let deletedArtists = "/";
     for (let i in req.body.artist) {
@@ -289,7 +288,6 @@ app.post('/rockAmRing/:user/:playlist', auth.required(), function (req, res) {
     spotifyInstance[req.params.user].addNewArtistsRockAmRing(req.body.newArtist)
       .then(function () {
         let rockAmRingSettings = storage.getItemSync('rockAmRingSettings')
-        console.log(rockAmRingSettings.artists)
         for (let i in req.body.newArtist) {
           if (req.body.newArtist[i].checked) {
             artists.push(req.body.newArtist[i].id)
