@@ -69,17 +69,20 @@ SpotifyInstance.prototype.generateMyRadar = function (idPlaylist) {
               oldTracks = oldTracks ? oldTracks : {}
 
               let newTracks = tracks.filter(track => {
-                let trackId = track.match(/.*:.*:(\w*)/)[1]
-                console.log(trackId, oldTracks.hasOwnProperty(trackId))
-                console.log(oldTracks[trackId], moment(oldTracks[trackId]).format())
-                console.log(moment().subtract(6, 'days').format())
+                if (track.release_date){
+                  return moment(track.release_date) > moment().subtract(6, 'days')
+                }
+                let trackId = track.uri.match(/.*:.*:(\w*)/)[1]
                 return !oldTracks.hasOwnProperty(trackId) || moment(oldTracks[trackId]) > moment().subtract(6, 'days')
               })
 
               storage.setItemSync('RadarTracks', newTracks.reduce((accu, track) => {
-                let trackId = track.match(/.*:.*:(\w*)/)[1]
+                let trackId = track.uri.match(/.*:.*:(\w*)/)[1]
                 if (!accu.hasOwnProperty(trackId))
                   accu[trackId] = moment().format()
+                if (track.release_date){
+                  accu[trackId] = moment(track.release_date).format()
+                }
                 return accu
               }, oldTracks))
             return self.refillPlaylist(idPlaylist, newTracks);
@@ -393,9 +396,13 @@ SpotifyInstance.prototype.getNewSongFromArtist = function (artist) {
             }).then(function (body) {
             let result = [];
             if (body) {
+              console.error('Perrine::SpotifyInstance::::body =>', body)
                 for (let i in body.albums) {
                     for (let j in body.albums[i].tracks.items) {
-                        result.push(body.albums[i].tracks.items[j].uri);
+                        result.push({
+                          uri:body.albums[i].tracks.items[j].uri,
+                          release_date: body.albums[i].release_date_precision === 'day' ? body.albums[i].release_date : false
+                        })
                     }
                 }
             }
