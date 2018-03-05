@@ -233,7 +233,7 @@ app.get('/shuffleAll', auth.required(), function (req, res) {
 });
 
 app.get('/customRockAmRing/:user/:playlist', auth.required(), function (req, res) {
-  console.log('/customRckAmRing ' + req.params.user)
+  console.log('get /customRockAmRing ' + req.params.user)
   let rockAmRingSettings = storage.getItemSync('rockAmRingSettings')
 
   let artistsTable = [], tmp = {}
@@ -279,9 +279,7 @@ app.get('/customRockAmRing/:user/:playlist', auth.required(), function (req, res
 })
 
 app.post('/rockAmRing/:user/:playlist', auth.required(), function (req, res) {
-  console.log('/rockAmRing ' + req.params.user)
-  console.log('/rockAmRing', req.body.artists)
-
+  console.log('post /rockAmRing ' + req.params.user)
   let artists = req.body.artists
 
   if (req.body.newArtist) {
@@ -309,7 +307,7 @@ app.post('/rockAmRing/:user/:playlist', auth.required(), function (req, res) {
 })
 
 app.get('/rockAmRing/:user/:playlist', auth.required(), function (req, res) {
-  console.log('/rockAmRing ' + req.params.user)
+  console.log('get /rockAmRing ' + req.params.user)
   let rockAmRingSettings = storage.getItemSync('rockAmRingSettings')
   spotifyInstance[req.params.user].generateMyRockAmRing(req.params.playlist, rockAmRingSettings.users[req.params.user])
 })

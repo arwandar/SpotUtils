@@ -493,7 +493,7 @@ SpotifyInstance.prototype.generateMyRockAmRing = function (playlist, artists) {
         })
         return this.refillPlaylist(playlist, tracks)
       }).then(() => {
-        console.log('miaw')
+        console.log('refill playlist RAR done')
         resolve()
       })
     })
