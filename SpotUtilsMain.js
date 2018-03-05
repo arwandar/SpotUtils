@@ -12,7 +12,7 @@ console_stamp(console, {
     pattern: "dd/mm/yyyy HH:MM:ss.l"
 });
 
-const expressPort = 3002;
+const expressPort = 3003;
 let spotifyInstance = {};
 
 let spotParams;
