@@ -203,7 +203,7 @@ app.post('/shuffleAll', auth.required(), function (req, res) {
 
 app.get('/shuffleAll', auth.required(), function (req, res) {
     console.log('shuffleAll');
-    let spotifyInstanceTable = [];
+    let spotifyInstanceTable = [], tracksIndex= {}, artistToDelete={};
     for (let i in spotifyInstance) {
         spotifyInstanceTable.push(spotifyInstance[i]);
     }
@@ -211,9 +211,8 @@ app.get('/shuffleAll', auth.required(), function (req, res) {
         return user.collectSavedTracks();
     }).then(function (data) {
         console.log('get all tracks ok');
-        let tracksIndex = {};
 
-        let artistToDelete = storage.getItemSync('artistToDelete');
+        artistToDelete = storage.getItemSync('artistToDelete');
         if (!artistToDelete)
             artistToDelete = '//';
 
@@ -226,8 +225,8 @@ app.get('/shuffleAll', auth.required(), function (req, res) {
                 }
             }
         }
-        return spotifyInstance.arwy.generateSortedShuffle('36CAf0pZvM9TZmUGIE0FUR', tracksIndex, artistToDelete);
-    }).then(function () {
+        return spotifyInstance.japyx.generateShortSortedShuffle('6zWkc1EjplFm2LIhfYbQJe', '2izRBiwwZy1XtMR4Yk2tq4', tracksIndex, artistToDelete)
+    }).then(() => spotifyInstance.arwy.generateSortedShuffle('36CAf0pZvM9TZmUGIE0FUR', tracksIndex, artistToDelete)).then(function () {
         res.redirect('/');
     });
 });

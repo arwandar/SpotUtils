@@ -189,6 +189,31 @@ SpotifyInstance.prototype.generateSortedShuffle = function (idPlaylist, tracks, 
     })
 };
 
+SpotifyInstance.prototype.generateShortSortedShuffle = function(idPlaylistOne, idPlaylistTwo, tracks, toDeleteArtists) {
+  return new Promise((resolve, reject) => {
+    let tracksTable = [];
+    for (let i in tracks) {
+      if (toDeleteArtists.indexOf(tracks[i].artist_id) < 0) {
+        tracksTable.push(tracks[i]);
+      }
+    }
+    tracksTable.sort(function (a, b) {
+      return b.note - a.note;
+    });
+
+    this.refillPlaylist(idPlaylistOne, tracksTable.slice(-20))
+      .then( () =>  this.refillPlaylist(idPlaylistTwo, tracksTable.slice(-40).slice(0,20)))
+      .then(() => {
+        console.log('generateShortSortedShuffle done')
+        resolve()
+      })
+      .catch( (err) => {
+        console.error('erreur lors de createSortedShuffle', err);
+        reject()
+      })
+  })
+}
+
 SpotifyInstance.prototype.startPlayingTrack = function (uri, idDevice = false) {
     console.log('start startPlaying');
     let self = this;
