@@ -1,0 +1,33 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:import/errors",
+    "airbnb",
+    "prettier"
+  ],
+  "plugins": ["react", "import"],
+
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  "rules": {
+    "class-methods-use-this": "off",
+    "import/no-mutable-exports": "error",
+    "import/exports-last": "error",
+    "import/prefer-default-export": "off",
+    "import/no-named-default": "off",
+    "import/no-named-as-default": "off",
+    "no-console": "off",
+    "no-plusplus": "off",
+    "no-unused-vars": "warn",
+    "react/display-name": "off",
+    "react/jsx-filename-extension": "warn",
+    "react/no-array-index-key": "error",
+    "react/prop-types": "off",
+    "spaced-comment": "off"
+  }
+}
