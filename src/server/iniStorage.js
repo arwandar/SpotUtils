@@ -11,7 +11,7 @@ export default () =>
       })
       .then(async () => {
         const spotInstances = {}
-        let spotParams = await storage.getItem('spotParams')
+        const spotParams = await storage.getItem('spotParams')
         if (!spotParams) {
           await storage.setItem('spotParams', {
             redirect_uri: 'http://localhost:3002/callback',

@@ -41,89 +41,11 @@ export default (app) => {
     })
     // FIN PROCESSUS DE LOGIN
 
-    app.get('/api/customShuffleAll', (req, res) => {
-      const users = Object.values(spotInstances)
-
-      const spotInstancesTable = users.map((user) => user.collectSavedTracks())
-
-      Promise.all(spotInstancesTable).then(async (data) => {
-        console.log('get all tracks ok')
-        const tracksIndex = {}
-        const artistsIndex = {}
-
-        let artistToDelete = await storage.getItem('artistToDelete')
-        if (!artistToDelete) artistToDelete = ''
-
-        data.forEach((user, index) => {
-          user.forEach((track) => {
-            if (!tracksIndex[track.id]) {
-              tracksIndex[track.id] = track
-              if (!artistsIndex[track.artist_id]) {
-                artistsIndex[track.artist_id] = {
-                  name: track.artist_name,
-                  tracks: [],
-                }
-
-                artistsIndex[track.artist_id].toDelete =
-                  artistToDelete.indexOf(`/${track.artist_id}/`) >= 0
-              }
-              artistsIndex[track.artist_id].tracks.push(track.name)
-            }
-            artistsIndex[track.artist_id].user =
-              artistsIndex[track.artist_id].user !== undefined &&
-              artistsIndex[track.artist_id].user !== users[index].user.name
-                ? 'all'
-                : users[index].user.name
-          })
-        })
-
-        const dictionnaryNotSorted = Object.values(artistsIndex).reduce((dico, artist) => {
-          let letter = artist.name.slice(0, 1).toLowerCase()
-          if (!Number.isNaN(letter)) letter = 0
-          // eslint-disable-next-line no-param-reassign
-          if (!dico[letter]) dico[letter] = []
-
-          dico[letter].push({
-            id: artist.id, // utiliser l'index si ca bug
-            name: artist.name,
-            tracks: artist.tracks,
-            toDelete: artist.toDelete,
-            user: artist.user,
-          })
-
-          return dico
-        }, {})
-
-        const dictionnary = Object.values(dictionnaryNotSorted)
-          .sort((a, b) => a[0].name.toLowerCase().localeCompare(b[0].name.toLowerCase()))
-          .map((letter) => letter.sort((a, b) => a.name.localeCompare(b.name)))
-
-        res.status(200).send(
-          JSON.stringify({
-            dictionnary,
-            tracksIndex,
-          })
-        )
-      })
-    })
-
-    app.post('/api/shuffleAll', (req, res) => {
-      console.log('shuffleAll')
-      const tracksIndex = JSON.parse(req.body.tracks)
-      const deletedArtists = req.body.artist.join('/')
-
-      storage.setItem('artistToDelete', deletedArtists)
-
-      spotInstances.arwy
-        .generateSortedShuffle('36CAf0pZvM9TZmUGIE0FUR', tracksIndex, deletedArtists)
-        .then(() => res.status(200).send('ok'))
-    })
-
     app.get('/api/shuffleAll', (req, res) => {
       console.log('shuffleAll')
 
       const tracksIndex = {}
-      let artistToDelete = {}
+      let artistToDelete = []
       const spotInstancesTable = Object.values(spotInstances).map((user) =>
         user.collectSavedTracks()
       )
@@ -141,9 +63,13 @@ export default (app) => {
             })
           })
 
-          // génération des morningShuffle et nightShuffle
-          return spotInstances.japyx.generateShortSortedShuffle(tracksIndex, artistToDelete)
+          return spotInstances.arwy.getTracksFronPlaylist('41rAa3d9mtEiGnFKdREOuC')
         })
+        .then((result) => {
+          artistToDelete = result
+        })
+        // génération des morningShuffle et nightShuffle
+        .then(() => spotInstances.japyx.generateShortSortedShuffle(tracksIndex, artistToDelete))
         .then(() => spotInstances.arwy.generateSortedShuffle(tracksIndex, artistToDelete))
         .then(() => res.status(200).send('ok'))
     })

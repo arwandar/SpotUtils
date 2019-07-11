@@ -108,6 +108,35 @@ export default class SpotInstance {
         Promise.resolve(this.user.name)
       })
 
+  getTracksFronPlaylist = (idPlaylist, offset = 0) =>
+    this.refreshAccessToken()
+      .then(() =>
+        Axios.get(
+          `https://api.spotify.com/v1/playlists/${idPlaylist}/tracks?fields=total,items(track(artists(id)))&limit=100&offset=${offset}`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.user.access_token}`,
+            },
+          }
+        )
+      )
+      .then(({ data }) => {
+        const uniq = (a) => [...new Set(a)]
+
+        const artistIds = data.items.reduce(
+          (acu, { track }) => [...acu, ...track.artists.map(({ id }) => id)],
+          []
+        )
+
+        if (data.total > offset + 100) {
+          return this.getTracksFronPlaylist(idPlaylist, offset + 100).then((result) =>
+            Promise.resolve(uniq(artistIds.concat(result)))
+          )
+        }
+        return Promise.resolve(uniq(artistIds))
+      })
+      .catch((e) => console.error(e))
+
   collectFollowedArtists = (
     artists = [],
     url = 'https://api.spotify.com/v1/me/following?type=artist&limit=50'
@@ -403,10 +432,7 @@ export default class SpotInstance {
         .filter((track) => !toDeleteArtists.includes(track.artist_id))
         .sort((a, b) => b.note - a.note)
     )
-      .then(() => {
-        console.log('done')
-        Promise.resolve()
-      })
+      .then(() => Promise.resolve())
       .catch((err) => {
         console.error('erreur lors de createSortedShuffle', err)
         Promise.reject()
