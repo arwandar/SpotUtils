@@ -2,10 +2,10 @@ import Axios from 'axios'
 import moment from 'moment'
 import storage from 'node-persist'
 import qs from 'query-string'
-import Random from 'random-js'
+import { MersenneTwister19937, Random } from 'random-js'
 
 const debug = false
-const random = new Random(Random.engines.mt19937().autoSeed())
+const random = new Random(MersenneTwister19937.autoSeed())
 
 export default class SpotInstance {
   constructor(spotParams: Object, user?: Object = {}) {
