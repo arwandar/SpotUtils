@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react'
-import { withNamespaces } from 'react-i18next'
+import { withTranslation } from 'react-i18next'
 import {
   Collapse,
   DropdownItem,
@@ -63,4 +63,4 @@ class Header extends React.Component<Props, State> {
   }
 }
 
-export default withNamespaces()(Header)
+export default withTranslation()(Header)

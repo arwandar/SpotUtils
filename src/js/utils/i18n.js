@@ -1,15 +1,19 @@
 // @flow
 
 import i18next from 'i18next'
-import { reactI18nextModule } from 'react-i18next'
+import { initReactI18next } from 'react-i18next'
 
-i18next.use(reactI18nextModule).init({
+import messageFr from './messages-fr'
+
+i18next.use(initReactI18next).init({
   lng: 'fr',
   debug: true,
   keySeparator: false,
   interpolation: { escapeValue: false },
-  react: {
-    wait: true,
+  ns: ['default'],
+  defaultNS: 'default',
+  resources: {
+    fr: { default: messageFr },
   },
 })
 

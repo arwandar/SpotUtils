@@ -23,11 +23,13 @@ const store = createStore(
 )
 
 ReactDOM.render(
-  <I18nextProvider i18n={i18n}>
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </I18nextProvider>,
+  <React.Suspense fallback="loading">
+    <I18nextProvider i18n={i18n}>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </I18nextProvider>
+  </React.Suspense>,
   document.getElementById('react-container')
 )
 
