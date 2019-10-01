@@ -414,14 +414,16 @@ export default class SpotInstance {
             ...artist.tracks.filter((trackOne, indexOne) =>
               artist.tracks.some(
                 (trackTwo, indexTwo) =>
-                  indexOne !== indexTwo && clean(trackOne.name) === clean(trackTwo.name)
+                  indexOne !== indexTwo &&
+                  clean(trackOne.name) === clean(trackTwo.name) &&
+                  trackOne.id !== trackTwo.id
               )
             ),
           ],
           []
         )
         .sort((a, b) => (clean(a.name) > clean(b.name) ? 1 : -1))
-
+      console.log(result)
       return this.refillPlaylist(idPlaylist, result)
     })
 
