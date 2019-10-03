@@ -54,9 +54,6 @@ export default (app) => {
         .then(async (data) => {
           console.log('get all tracks ok')
 
-          artistToDelete = await storage.getItem('artistToDelete')
-          if (!artistToDelete) artistToDelete = ''
-
           data.forEach((user) => {
             user.forEach((track) => {
               if (!tracksIndex[track.id]) tracksIndex[track.id] = track
@@ -65,9 +62,7 @@ export default (app) => {
 
           return spotInstances.arwy.getTracksFronPlaylist('41rAa3d9mtEiGnFKdREOuC')
         })
-        .then((result) => {
-          artistToDelete = result
-        })
+        .then((result) => (artistToDelete = result))
         // génération des morningShuffle et nightShuffle
         .then(() => spotInstances.japyx.generateShortSortedShuffle(tracksIndex, artistToDelete))
         .then(() => spotInstances.arwy.generateSortedShuffle(tracksIndex, artistToDelete))

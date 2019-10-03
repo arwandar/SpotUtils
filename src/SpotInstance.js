@@ -301,50 +301,6 @@ export default class SpotInstance {
       })
   }
 
-  putTracksInLibrary = (tracks) => {
-    if (tracks.length === 0) Promise.resolve()
-    const cleanTracks = this.cleanTracksForCall(tracks)
-    return Axios.put(
-      `https://api.spotify.com/v1/me/tracks`,
-      {
-        ids: cleanTracks.splice(0, 50),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.user.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-      .then(() => this.putTracksInLibrary(cleanTracks))
-      .catch(() => {
-        console.error('erreur lors de putTracksInLibrary')
-        Promise.reject()
-      })
-  }
-
-  removeTracksFromLibrary = (tracks) => {
-    if (tracks.length === 0) Promise.resolve()
-    const cleanTracks = this.cleanTracksForCall(tracks)
-    return Axios.delete(
-      `https://api.spotify.com/v1/me/tracks`,
-      {
-        ids: cleanTracks.splice(0, 50),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.user.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-      .then(() => this.removeTracksFromLibrary(cleanTracks))
-      .catch((err) => {
-        console.error('erreur lors de removeTracksFromLibrary', err)
-        Promise.reject()
-      })
-  }
-
   generateMyRadar = (idPlaylist: string) =>
     this.collectFollowedArtists()
       .then((artists) => this.getNewSongFromArtists(artists))
@@ -363,9 +319,7 @@ export default class SpotInstance {
           'RadarTracks',
           newTracks.reduce((accu, track) => {
             const trackId = track.uri.match(/.*:.*:(\w*)/)[1]
-            // eslint-disable-next-line no-param-reassign
             if (!accu.trackId) accu[trackId] = moment().format()
-            // eslint-disable-next-line no-param-reassign
             if (track.release_date) accu[trackId] = moment(track.release_date).format()
             return accu
           }, oldTracks)
@@ -434,7 +388,16 @@ export default class SpotInstance {
         .filter((track) => !toDeleteArtists.includes(track.artist_id))
         .sort((a, b) => b.note - a.note)
     )
-      .then(() => Promise.resolve())
+      .then(() => {
+        return this.refillPlaylist(
+          this.user.defaultPlaylists.shufflyBlacklisted,
+          Object.values(tracks)
+            .filter((track) => toDeleteArtists.includes(track.artist_id))
+            .sort((a, b) =>
+              a.artist_name.localeCompare(b.artist_name, 'fr', { ignorePunctuation: true })
+            )
+        )
+      })
       .catch((err) => {
         console.error('erreur lors de createSortedShuffle', err)
         Promise.reject()
@@ -463,25 +426,21 @@ export default class SpotInstance {
     console.log(idPlaylist)
     let toAdd = []
     let toRemove = []
-    return this.collectSavedTracks()
-      .then((tracks) => {
-        const tmpTracks = tracks.filter((track) => track.raw.linked_from)
+    return this.collectSavedTracks().then((tracks) => {
+      const tmpTracks = tracks.filter((track) => track.raw.linked_from)
 
-        toRemove = tmpTracks.map((track) => track.raw.linked_from.id)
-        toAdd = tmpTracks.map((track) => track.id)
+      toRemove = tmpTracks.map((track) => track.raw.linked_from.id)
+      toAdd = tmpTracks.map((track) => track.id)
 
-        return this.removeTracksFromLibrary(toRemove)
-
-        /*return this.refillPlaylist(
-          idPlaylist,
-          tracks
-            .filter((track) => track.raw.linked_from)
-            .reduce(
-              (accu, track) => [...accu, track.raw.linked_from.uri, track.uri],
-              tracks.filter((track) => !track.is_playable).map(({ uri }) => uri)
-            )
-        )*/
-      })
-      .then(() => this.putTracksInLibrary(toAdd))
+      return this.refillPlaylist(
+        idPlaylist,
+        tracks
+          .filter((track) => track.raw.linked_from)
+          .reduce(
+            (accu, track) => [...accu, track.raw.linked_from.uri, track.uri],
+            tracks.filter((track) => !track.is_playable).map(({ uri }) => uri)
+          )
+      )
+    })
   }
 }
