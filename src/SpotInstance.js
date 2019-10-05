@@ -43,44 +43,8 @@ export default class SpotInstance {
         console.log('new tokens for', this.user.name)
         return Promise.resolve()
       })
-      .catch((e) => console.log('Pixelle::SpotInstance.js::27::e =>', e))
+      .catch(() => console.log('Pixelle::SpotInstance.js::27::e =>'))
   }
-
-  collectSavedTracks = (tracks = [], uri = 'https://api.spotify.com/v1/me/tracks?limit=50') =>
-    this.refreshAccessToken()
-      .then(() =>
-        Axios.get(uri, {
-          params: {
-            market: this.user.country,
-          },
-          headers: {
-            Authorization: `Bearer ${this.user.access_token}`,
-          },
-        })
-      )
-      .then(({ data }) => {
-        const nextTracks = [
-          ...tracks,
-          ...data.items.map(({ track }) => ({
-            uri: track.uri,
-            id: track.id,
-            name: track.name,
-            artist_id: track.artists[0].id,
-            artist_name: track.artists[0].name,
-            album_name: track.album.name,
-            is_playable: track.is_playable,
-            note: random.integer(0, 10000),
-            raw: track,
-          })),
-        ]
-        if (data.next != null && (!debug || tracks.length < 500))
-          return this.collectSavedTracks(nextTracks, data.next)
-        return Promise.resolve(nextTracks)
-      })
-      .catch((err) => {
-        console.error(`collectSavedTracks ${this.user.name}`, err)
-        Promise.reject()
-      })
 
   finalizeAuthentication = (code, pseudo) =>
     this.refreshAccessToken({
@@ -107,12 +71,49 @@ export default class SpotInstance {
         storage.setItem(`user_${this.user.name}`, this.user)
         Promise.resolve(this.user.name)
       })
+      .catch(console.log('finalizeAuthentication'))
 
-  getTracksFronPlaylist = (idPlaylist, offset = 0) =>
+  collectSavedTracks = (tracks = [], uri = 'https://api.spotify.com/v1/me/tracks?limit=50') =>
+    this.refreshAccessToken()
+      .then(() =>
+        Axios.get(uri, {
+          params: {
+            market: this.user.country,
+          },
+          headers: {
+            Authorization: `Bearer ${this.user.access_token}`,
+          },
+        })
+      )
+      .then(({ data }) => {
+        const nextTracks = [
+          ...tracks,
+          ...data.items.map(({ track }) => ({
+            uri: track.uri,
+            id: track.id,
+            name: track.name,
+            artist_id: track.artists[0].id,
+            artists_id: track.artists.map((t) => t.id),
+            artist_name: track.artists[0].name,
+            album_name: track.album.name,
+            is_playable: track.is_playable,
+            raw: track,
+          })),
+        ]
+        if (data.next != null && (!debug || tracks.length < 200))
+          return this.collectSavedTracks(nextTracks, data.next)
+        return Promise.resolve(nextTracks)
+      })
+      .catch((err) => {
+        console.error(`collectSavedTracks ${this.user.name}`, err)
+        Promise.reject()
+      })
+
+  getArtistsFromBlacklist = (offset = 0) =>
     this.refreshAccessToken()
       .then(() =>
         Axios.get(
-          `https://api.spotify.com/v1/playlists/${idPlaylist}/tracks?fields=total,items(track(artists(id)))&limit=100&offset=${offset}`,
+          `https://api.spotify.com/v1/playlists/${this.user.defaultPlaylists.blacklist}/tracks?fields=total,items(track(artists(id)))&limit=100&offset=${offset}`,
           {
             headers: {
               Authorization: `Bearer ${this.user.access_token}`,
@@ -129,13 +130,13 @@ export default class SpotInstance {
         )
 
         if (data.total > offset + 100) {
-          return this.getTracksFronPlaylist(idPlaylist, offset + 100).then((result) =>
+          return this.getTracksFronPlaylist(offset + 100).then((result) =>
             Promise.resolve(uniq(artistIds.concat(result)))
           )
         }
         return Promise.resolve(uniq(artistIds))
       })
-      .catch((e) => console.error(e))
+      .catch(() => console.error(this.user))
 
   collectFollowedArtists = (
     artists = [],
@@ -155,8 +156,7 @@ export default class SpotInstance {
           ...data.artists.items.map(({ uri, id, name, genres }) => ({ uri, id, name, genres })),
         ]
 
-        if (data.artists.next != null)
-          return this.collectFollowedArtists(nextArtists, data.artists.next)
+        if (data.artists.next != null) return this.collectFollowedArtists(nextArtists, data.artists.next)
         return Promise.resolve(nextArtists)
       })
       .catch((err) => {
@@ -180,7 +180,6 @@ export default class SpotInstance {
           }
         )
       )
-
       .then(({ data }) => {
         if (data.albums.total === 0) return Promise.resolve([])
         const albumIds = data.albums.items
@@ -242,8 +241,7 @@ export default class SpotInstance {
         Promise.reject()
       })
 
-  cleanTracksForCall = (tracks) =>
-    typeof tracks[0] === 'object' ? tracks.map(({ uri }) => uri) : tracks
+  cleanTracksForCall = (tracks) => (typeof tracks[0] === 'object' ? tracks.map(({ uri }) => uri) : tracks)
 
   addTracksToPlaylist = (idPlaylist, tracks) => {
     if (tracks.length === 0) Promise.resolve()
@@ -262,11 +260,8 @@ export default class SpotInstance {
       }
     )
       .then(() =>
-        cleanTracks.length === 0
-          ? Promise.resolve()
-          : this.addTracksToPlaylist(idPlaylist, cleanTracks)
+        cleanTracks.length === 0 ? Promise.resolve() : this.addTracksToPlaylist(idPlaylist, cleanTracks)
       )
-
       .catch((err) => {
         console.error('erreur lors de addTracksToPlaylist', err)
         Promise.reject()
@@ -290,13 +285,11 @@ export default class SpotInstance {
       }
     )
       .then(() =>
-        cleanTracks.length === 0
-          ? Promise.resolve()
-          : this.addTracksToPlaylist(idPlaylist, cleanTracks)
+        cleanTracks.length === 0 ? Promise.resolve() : this.addTracksToPlaylist(idPlaylist, cleanTracks)
       )
-      .catch((err) => {
-        console.error('erreur lors de refillPlaylist', err)
-        console.log(err)
+      .catch(() => {
+        console.error('erreur lors de refillPlaylist', idPlaylist)
+        console.error('erreur lors de refillPlaylist', this.user.defaultPlaylists)
         Promise.reject()
       })
   }
@@ -319,128 +312,89 @@ export default class SpotInstance {
           'RadarTracks',
           newTracks.reduce((accu, track) => {
             const trackId = track.uri.match(/.*:.*:(\w*)/)[1]
+            // eslint-disable-next-line no-param-reassign
             if (!accu.trackId) accu[trackId] = moment().format()
+            // eslint-disable-next-line no-param-reassign
             if (track.release_date) accu[trackId] = moment(track.release_date).format()
             return accu
           }, oldTracks)
         )
         return this.refillPlaylist(idPlaylist || this.user.defaultPlaylists.radar, newTracks)
       })
-
       .catch((err) => {
         console.log('error generateMyRadar', err)
         return Promise.reject()
       })
 
-  generateMyShuffle = (idPlaylist) =>
-    this.collectSavedTracks().then((tracks) => {
-      tracks.sort((a, b) => b.note - a.note)
-      return this.refillPlaylist(idPlaylist || this.user.defaultPlaylists.shuffle, tracks)
-    })
-
   generateMyDoublons = (idPlaylist) =>
-    this.collectSavedTracks().then((tracks) => {
-      const artistsIndex = {}
-      tracks.forEach((track) => {
-        if (!artistsIndex[track.artist_id]) {
-          artistsIndex[track.artist_id] = {
-            name: track.artist_name,
-            tracks: [],
+    this.collectSavedTracks()
+      .then((tracks) => {
+        const artistsIndex = {}
+        tracks.forEach((track) => {
+          if (!artistsIndex[track.artist_id]) {
+            artistsIndex[track.artist_id] = {
+              name: track.artist_name,
+              tracks: [],
+            }
           }
-        }
-        artistsIndex[track.artist_id].tracks.push(track)
+          artistsIndex[track.artist_id].tracks.push(track)
+        })
+
+        const clean = (str: string) =>
+          str
+            .toLowerCase()
+            .replace(new RegExp('\\(', 'g'), '')
+            .replace(new RegExp('\\)', 'g'), '')
+            .replace(new RegExp(' ', 'g'), '')
+            .replace(new RegExp('-', 'g'), '')
+            .replace(new RegExp('deluxe', 'g'), '')
+            .replace(new RegExp('remastered', 'g'), '')
+
+        const result = Object.values(artistsIndex)
+          .reduce(
+            (accu, artist) => [
+              ...accu,
+              ...artist.tracks.filter((trackOne, indexOne) =>
+                artist.tracks.some(
+                  (trackTwo, indexTwo) =>
+                    indexOne !== indexTwo &&
+                    clean(trackOne.name) === clean(trackTwo.name) &&
+                    trackOne.id !== trackTwo.id
+                )
+              ),
+            ],
+            []
+          )
+          .sort((a, b) => (clean(a.name) > clean(b.name) ? 1 : -1))
+        console.log(result)
+        return this.refillPlaylist(idPlaylist, result)
       })
+      .catch(() => console.log('generateMyDoublons'))
 
-      const clean = (str: string) =>
-        str
-          .toLowerCase()
-          .replace(new RegExp('\\(', 'g'), '')
-          .replace(new RegExp('\\)', 'g'), '')
-          .replace(new RegExp(' ', 'g'), '')
-          .replace(new RegExp('-', 'g'), '')
-          .replace(new RegExp('deluxe', 'g'), '')
-          .replace(new RegExp('remastered', 'g'), '')
+  generateSortedShuffle = (tracks: Array, playlistName) => {
+    console.log(playlistName)
+    const tracksTable = tracks
+      .map((track) => ({ ...track, note: random.integer(0, 10000) }))
+      .sort((a, b) => b.note - a.note)
 
-      const result = Object.values(artistsIndex)
-        .reduce(
-          (accu, artist) => [
-            ...accu,
-            ...artist.tracks.filter((trackOne, indexOne) =>
-              artist.tracks.some(
-                (trackTwo, indexTwo) =>
-                  indexOne !== indexTwo &&
-                  clean(trackOne.name) === clean(trackTwo.name) &&
-                  trackOne.id !== trackTwo.id
-              )
-            ),
-          ],
-          []
-        )
-        .sort((a, b) => (clean(a.name) > clean(b.name) ? 1 : -1))
-      console.log(result)
-      return this.refillPlaylist(idPlaylist, result)
+    return this.refillPlaylist(this.user.defaultPlaylists[playlistName], tracksTable).catch(() => {
+      console.error('erreur lors de createSortedShuffle', playlistName)
+      Promise.reject()
     })
+  }
 
-  generateSortedShuffle = (tracks: Object, toDeleteArtists) =>
-    this.refillPlaylist(
-      this.user.defaultPlaylists.shuffleAll,
-      Object.values(tracks)
-        .filter((track) => !toDeleteArtists.includes(track.artist_id))
-        .sort((a, b) => b.note - a.note)
-    )
-      .then(() => {
+  generateIndispo = (idPlaylist) =>
+    this.collectSavedTracks()
+      .then((tracks) => {
         return this.refillPlaylist(
-          this.user.defaultPlaylists.shufflyBlacklisted,
-          Object.values(tracks)
-            .filter((track) => toDeleteArtists.includes(track.artist_id))
-            .sort((a, b) =>
-              a.artist_name.localeCompare(b.artist_name, 'fr', { ignorePunctuation: true })
+          idPlaylist,
+          tracks
+            .filter((track) => track.raw.linked_from)
+            .reduce(
+              (accu, track) => [...accu, track.raw.linked_from.uri, track.uri],
+              tracks.filter((track) => !track.is_playable).map(({ uri }) => uri)
             )
         )
       })
-      .catch((err) => {
-        console.error('erreur lors de createSortedShuffle', err)
-        Promise.reject()
-      })
-
-  generateShortSortedShuffle = (tracks: Object, toDeleteArtists) => {
-    const tracksTable = Object.values(tracks)
-      .filter((track) => !toDeleteArtists.includes(track.artist_id))
-      .sort((a, b) => b.note - a.note)
-
-    return this.refillPlaylist(this.user.defaultPlaylists.morningShuffle, tracksTable.slice(-20))
-      .then(() =>
-        this.refillPlaylist(
-          this.user.defaultPlaylists.nightShuffle,
-          tracksTable.slice(-40).slice(0, 20)
-        )
-      )
-      .catch((err) => {
-        console.error('erreur lors de createSortedShuffle', err)
-        Promise.reject()
-      })
-  }
-
-  //TODO à finir
-  generateIndispo = (idPlaylist) => {
-    console.log(idPlaylist)
-    let toAdd = []
-    let toRemove = []
-    return this.collectSavedTracks().then((tracks) => {
-      const tmpTracks = tracks.filter((track) => track.raw.linked_from)
-
-      toRemove = tmpTracks.map((track) => track.raw.linked_from.id)
-      toAdd = tmpTracks.map((track) => track.id)
-
-      return this.refillPlaylist(
-        idPlaylist,
-        tracks
-          .filter((track) => track.raw.linked_from)
-          .reduce(
-            (accu, track) => [...accu, track.raw.linked_from.uri, track.uri],
-            tracks.filter((track) => !track.is_playable).map(({ uri }) => uri)
-          )
-      )
-    })
-  }
+      .catch(() => console.log('generateIndispo'))
 }

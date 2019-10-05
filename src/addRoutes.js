@@ -1,4 +1,3 @@
-import storage from 'node-persist'
 import qs from 'query-string'
 
 import iniStorage from './iniStorage'
@@ -45,42 +44,80 @@ export default (app) => {
       console.log('shuffleAll')
 
       const tracksIndex = {}
-      let artistToDelete = []
-      const spotInstancesTable = Object.values(spotInstances).map((user) =>
-        user.collectSavedTracks()
-      )
+      const artistsToDelete = {}
+      const owners = Object.keys(spotInstances)
 
-      Promise.all(spotInstancesTable)
-        .then(async (data) => {
+      Promise.all(Object.values(owners).map((surname) => spotInstances[surname].collectSavedTracks()))
+        .then((data) => {
           console.log('get all tracks ok')
 
-          data.forEach((user) => {
+          data.forEach((user, index) => {
             user.forEach((track) => {
-              if (!tracksIndex[track.id]) tracksIndex[track.id] = track
+              if (!tracksIndex[track.id]) tracksIndex[track.id] = { ...track, owners: [owners[index]] }
+              else tracksIndex[track.id].owners.push(owners[index])
             })
           })
-
-          return spotInstances.arwy.getTracksFronPlaylist('41rAa3d9mtEiGnFKdREOuC')
+          Object.values(tracksIndex)
+          return Promise.all(
+            Object.values(owners).map((surname) => spotInstances[surname].getArtistsFromBlacklist())
+          )
         })
-        .then((result) => (artistToDelete = result))
-        // génération des morningShuffle et nightShuffle
-        .then(() => spotInstances.japyx.generateShortSortedShuffle(tracksIndex, artistToDelete))
-        .then(() => spotInstances.arwy.generateSortedShuffle(tracksIndex, artistToDelete))
+        .then((data) => {
+          data.forEach((d, index) => {
+            artistsToDelete[owners[index]] = d
+          })
+          console.log(artistsToDelete)
+
+          //generation des shuffles biblio
+          return Promise.all(
+            owners.map((surname) =>
+              spotInstances[surname].generateSortedShuffle(
+                Object.values(tracksIndex).filter(({ owners: o }) => o.includes(surname)),
+                'shuffleBiblio'
+              )
+            )
+          )
+        })
+
+        .then(() =>
+          Promise.all(
+            owners.map((surname) =>
+              spotInstances[surname].generateSortedShuffle(
+                Object.values(tracksIndex).filter((t) => {
+                  if (t.uri === 'spotify:track:507bYMYfbm6sUS9iEAaeSd') {
+                    console.log(t)
+                  }
+                  return (
+                    t.owners.includes(surname) ||
+                    artistsToDelete[surname].filter((a) => t.artists_id.includes(a)).length === 0
+                  )
+
+                  // !artistsToDelete[surname].includes(t.artist_id)
+                }),
+                'shufflePerso'
+              )
+            )
+          )
+        )
+        .then(() =>
+          spotInstances.arwy.generateSortedShuffle(
+            Object.values(tracksIndex).filter((t) => {
+              let toKeep = true
+              Object.keys(artistsToDelete).forEach((surname) => {
+                if (
+                  !t.owners.includes(surname) &&
+                  artistsToDelete[surname].filter((a) => t.artists_id.includes(a)).length === 0
+                ) {
+                  toKeep = false
+                }
+              })
+              return toKeep
+            }),
+            'shuffleAll'
+          )
+        )
         .then(() => res.status(200).send('ok'))
-    })
-
-    app.get('/api/shuffle/:user/:playlist?', (req, res) => {
-      console.log(`/shuffle ${req.params.user} ${req.params.playlist}`)
-      console.log('pixelle', spotInstances)
-      spotInstances[req.params.user]
-        .generateMyShuffle(req.params.playlist)
-        .then(() => {
-          console.log('done')
-          res.status(200).send('ok')
-        })
-        .catch((err) => {
-          console.error('/shuffle', err)
-        })
+        .catch((err) => console.error('/shuffle', err))
     })
 
     app.get('/api/radar/:user/:playlist?', (req, res) => {
