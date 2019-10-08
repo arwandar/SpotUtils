@@ -1,12 +1,13 @@
 import express from 'express'
 
-import addRoutes from './addRoutes'
-
-const app = express()
-
-addRoutes(app)
+import getRadar from './getRadar'
+import getShuffle from './getShuffle'
 
 const PORT = 3002
+const app = express()
+
+getRadar(app)
+getShuffle(app)
 
 app.listen(PORT, () => {
   console.log(`App listening to ${PORT}....`)
