@@ -1,4 +1,5 @@
 import { getUsernames } from '../commonBDD'
+import { updateGist } from '../commonLog'
 import { getSavedTracks } from '../commonSpotify'
 import generateSortedShuffle from './generateSortedShuffle'
 import getArtistsFromBlacklist from './getArtistsFromBlacklist'
@@ -7,6 +8,8 @@ const filterByUser = (username, t, artistsToDelete) =>
   t.owners.includes(username) ||
   artistsToDelete[username].filter((a) => t.artists_id.includes(a)).length === 0
 
+const formatExclude = (t) => `${t.artist_name} \\ ${t.name} \\ ${t.album_name}`
+
 export default (app) => {
   app.get('/api/shuffle', (req, res) => {
     console.log('shuffle')
@@ -14,10 +17,14 @@ export default (app) => {
     let tracks = []
     const artistsToDelete = {}
     let usernames
+    const excludes = { Shuffle_all: [] }
 
     getUsernames()
       .then((result) => {
         usernames = result
+        usernames.forEach((username) => {
+          excludes[`ShufflePerso_${username}`] = []
+        })
         return Promise.all(usernames.map((username) => getSavedTracks(username)))
       })
       .then((data) => {
@@ -52,7 +59,13 @@ export default (app) => {
           usernames.map((username) =>
             generateSortedShuffle(
               username,
-              tracks.filter((t) => filterByUser(username, t, artistsToDelete)),
+              tracks.filter((t) => {
+                if (!filterByUser(username, t, artistsToDelete)) {
+                  excludes[`ShufflePerso_${username}`].push(formatExclude(t))
+                  return false
+                }
+                return true
+              }),
               'shufflePerso'
             )
           )
@@ -66,6 +79,7 @@ export default (app) => {
             usernames.forEach((username) => {
               if (!filterByUser(username, t, artistsToDelete)) toKeep = false
             })
+            if (!toKeep) excludes.Shuffle_all.push(formatExclude(t))
             return toKeep
           }),
           'shuffleAll'
@@ -87,6 +101,7 @@ export default (app) => {
           20
         )
       )
+      .then(() => updateGist(excludes))
       .then(() => res.status(200).send('ok'))
       .catch((err) => console.error('/shuffle', err))
   })
