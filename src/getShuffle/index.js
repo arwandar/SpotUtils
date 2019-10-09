@@ -48,7 +48,7 @@ export default (app) => {
           usernames.map((username) =>
             generateSortedShuffle(
               username,
-              Object.values(tracks).filter((t) => filterByUser(username, t, artistsToDelete)),
+              Object.values(tracks).filter((t) => t.owners.includes(username)),
               'shuffleBiblio'
             )
           )
