@@ -1,5 +1,5 @@
 import { getUsernames } from '../commonBDD'
-import { updateGist } from '../commonLog'
+import { updateExclusionGist } from '../commonLog'
 import { getSavedTracks } from '../commonSpotify'
 import generateSortedShuffle from './generateSortedShuffle'
 import getArtistsFromBlacklist from './getArtistsFromBlacklist'
@@ -101,7 +101,7 @@ export default (app) => {
           20
         )
       )
-      .then(() => updateGist(excludes))
+      .then(() => updateExclusionGist(excludes))
       .then(() => res.status(200).send('ok'))
       .catch((err) => console.error('/shuffle', err))
   })
