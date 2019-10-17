@@ -5,6 +5,51 @@ const Octokit = require('@octokit/rest')
 let gistParams
 let clientWithAuth
 
+const queue = []
+let isQueueStarted = false
+
+const startQueue = () => {
+  if (isQueueStarted) return
+
+  isQueueStarted = true
+
+  const content = queue.shift()
+  while (queue.length > 0 && queue[0].gist_id === content.gist_id) {
+    const nextQueue = queue.shift()
+    content.files = {
+      ...content.files,
+      ...nextQueue.files,
+    }
+  }
+
+  clientWithAuth.gists
+    .update(content)
+    .then(() => {
+      setTimeout(() => {
+        isQueueStarted = false
+        if (queue.length > 0) startQueue()
+      }, 5000)
+    })
+    .catch((e) => console.log('CommonLog::ERREUR::e =>', e))
+}
+
+const addToQueue = (content) => {
+  queue.push(content)
+  setTimeout(() => {
+    startQueue()
+  }, 5000)
+}
+
+const formatFiles = (excludes) => {
+  const files = {}
+  Object.keys(excludes).forEach((key) => {
+    files[`${key}.txt`] = {
+      content: excludes[key].sort((a, b) => a.localeCompare(b)).join('\n'),
+    }
+  })
+  return files
+}
+
 export const initGist = () =>
   getGistParams().then((result) => {
     gistParams = result
@@ -13,34 +58,18 @@ export const initGist = () =>
     })
   })
 
-export const updateExclusionGist = (excludes) => {
-  const files = {}
-  Object.keys(excludes).forEach((key) => {
-    files[`${key}.txt`] = {
-      content: excludes[key].sort((a, b) => a.localeCompare(b)).join('\n'),
-    }
+export const updateExclusionGist = (excludes) =>
+  addToQueue({
+    gist_id: gistParams.exclusionId,
+    files: formatFiles(excludes),
   })
 
-  clientWithAuth.gists
-    .update({
-      gist_id: gistParams.exclusionId,
-      files,
-    })
-    .catch((e) => console.log('Pixelle::index.js::28::e =>', e))
-}
-
-export const updateOrderGist = (order) => {
-  const files = {}
-  Object.keys(order).forEach((key) => {
-    files[`${key}.txt`] = {
-      content: order[key],
-    }
+export const updateOrderGist = (fileName, order): void =>
+  addToQueue({
+    gist_id: gistParams.orderId,
+    files: {
+      [`${fileName}.txt`]: {
+        content: order,
+      },
+    },
   })
-
-  clientWithAuth.gists
-    .update({
-      gist_id: gistParams.orderId,
-      files,
-    })
-    .catch((e) => console.log('Pixelle::index.js::45::e =>', e))
-}
