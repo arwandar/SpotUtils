@@ -1,6 +1,7 @@
 import { getUsernames } from '../commonBDD'
 import { updateExclusionGist } from '../commonLog'
 import { getSavedTracks } from '../commonSpotify'
+import generateBuggyTracks from './generateBuggyTracks'
 import generateSortedShuffle from './generateSortedShuffle'
 import getArtistsFromBlacklist from './getArtistsFromBlacklist'
 
@@ -99,6 +100,16 @@ export default (app) => {
           tracks.filter((t) => filterByUser('japyx', t, artistsToDelete)),
           'nightShuffle',
           20
+        )
+      )
+      .then(() =>
+        Promise.all(
+          usernames.map((username) =>
+            generateBuggyTracks(
+              username,
+              Object.values(tracks).filter((t) => t.owners.includes(username))
+            )
+          )
         )
       )
       .then(() => updateExclusionGist(excludes))
