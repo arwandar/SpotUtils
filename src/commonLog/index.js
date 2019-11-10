@@ -73,3 +73,13 @@ export const updateOrderGist = (fileName, order): void =>
       },
     },
   })
+
+export const updateTracksGist = (fileName, tracks): void =>
+  addToQueue({
+    gist_id: gistParams.tracksId,
+    files: {
+      [`${fileName}.txt`]: {
+        content: tracks,
+      },
+    },
+  })

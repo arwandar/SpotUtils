@@ -1,5 +1,6 @@
 import Axios from 'axios'
 
+import { updateTracksGist } from '../commonLog'
 import getUserWithToken from './getUserWithToken'
 
 const debug = false
@@ -30,10 +31,23 @@ const getSavedTracks = (
       ]
       return data.next != null && (!debug || tracks.length < 200)
         ? getSavedTracks(user, nextTracks, data.next)
-        : Promise.resolve(nextTracks)
+        : Promise.resolve({ user, savedTracks: nextTracks })
     })
     .catch(() => {
       console.log('ERREUR::getSavedTracks.js::33')
     })
 
-export default (username: String) => getUserWithToken(username).then(getSavedTracks)
+export default (username: String) =>
+  getUserWithToken(username)
+    .then(getSavedTracks)
+    .then(({ user, savedTracks }) => {
+      updateTracksGist(
+        `${user.name}`,
+        savedTracks
+          .map((t) => `${t.raw.artists.map(({ name }) => name).join(', ')} \t ${t.name} \t ${t.id}`)
+          .sort((a, b) => a.localeCompare(b))
+          .join('\n')
+      )
+
+      return savedTracks
+    })
