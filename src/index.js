@@ -4,6 +4,7 @@ import { initStorage } from './commonBDD'
 import { initGist } from './commonLog'
 import getRadar from './getRadar'
 import getShuffle from './getShuffle'
+import getTop from './getTop'
 
 initStorage()
   .then(initGist)
@@ -14,6 +15,7 @@ const app = express()
 
 getRadar(app)
 getShuffle(app)
+getTop(app)
 
 app.listen(PORT, () => {
   console.log(`App listening to ${PORT}....`)

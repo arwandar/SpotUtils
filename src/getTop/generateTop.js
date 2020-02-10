@@ -7,20 +7,20 @@ import {
   refillPlaylist,
 } from '../commonSpotify'
 
-const topFive = {}
+const top = {}
 const dico = {}
 
 const getHeaders = (user) => ({ headers: { Authorization: `Bearer ${user.access_token}` } })
 
 const getArtistTop = (artists, user) => {
   const id = artists.pop()
-  if (!topFive[id]) {
+  if (!top[id]) {
     return Axios.get(`https://api.spotify.com/v1/artists/${id}/top-tracks`, {
       params: { country: user.country },
       ...getHeaders(user),
     })
       .then(({ data }) => {
-        topFive[id] = data.tracks.map((track) => track.uri)
+        top[id] = data.tracks.map((track) => track.uri)
         return Axios.get(`https://api.spotify.com/v1/artists/${id}`, getHeaders(user))
       })
       .then(({ data }) => {
@@ -59,11 +59,11 @@ const generateTopFive = (user: Object) => {
       )
     })
     .then(() => {
-      console.log('Pixelle::generateTopFive.js::60::topFive =>', topFive)
+      console.log('Pixelle::generateTopFive.js::60::topFive =>', top)
       playlistsSources.forEach((pS) => {
         const tracks = pS.artists
           .sort((a, b) => dico[a].localeCompare(dico[b]))
-          .map((a) => topFive[a])
+          .map((a) => top[a])
           .flat()
         console.log('Pixelle::generateTopFive.js::56::tracks =>', tracks)
 
@@ -84,10 +84,6 @@ const generateTopFive = (user: Object) => {
         return refillPlaylist(user, pT.id, tracks)
       })
     })
-
-  // return refillPlaylist(user, user.defaultPlaylists.buggyTracks, result).catch(() => {
-  //   console.log('ERREUR::genereateBuggyTracks.js')
-  // })
 }
 
 export default (username: String) =>

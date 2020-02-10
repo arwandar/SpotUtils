@@ -3,7 +3,6 @@ import { updateExclusionGist } from '../commonLog'
 import { getSavedTracks } from '../commonSpotify'
 import generateBuggyTracks from './generateBuggyTracks'
 import generateSortedShuffle from './generateSortedShuffle'
-import generateTopFive from './generateTopFive'
 import getArtistsFromBlacklist from './getArtistsFromBlacklist'
 
 const filterByUser = (username, t, artistsToDelete) =>
@@ -113,7 +112,6 @@ export default (app) => {
       .then(() => reducedShuffle(tracks, artistsToDelete, 'nightShuffle'))
       .then(() => buggyTracks(usernames, tracks))
       .then(() => updateExclusionGist(excludes))
-      .then(() => Promise.all(usernames.map((username) => generateTopFive(username))))
       .then(() => res.status(200).send('ok'))
       .catch((err) => console.error('/shuffle', err))
   })
