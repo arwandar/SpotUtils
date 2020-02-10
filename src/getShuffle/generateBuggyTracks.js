@@ -42,7 +42,7 @@ const genereateBuggyTracks = (user: Object, tracks: Array) => {
 
   result = addWhiteNoise(result)
 
-  //partie avec les noms en doublons
+  // partie avec les noms en doublons
   // on met toutes les pistes dans un dico, avec en index le noms des artistes
   const dico = {}
   tracks.forEach((t) =>

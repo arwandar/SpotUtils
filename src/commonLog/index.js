@@ -1,6 +1,6 @@
-import { getGistParams } from '../commonBDD'
+import { Octokit } from '@octokit/rest'
 
-const Octokit = require('@octokit/rest')
+import { getGistParams } from '../commonBDD'
 
 let gistParams
 let clientWithAuth

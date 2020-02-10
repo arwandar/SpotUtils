@@ -53,15 +53,14 @@ const getNewSongFromArtist = (user: Object, artist: Object) =>
     )
     .catch(() => console.log('ERREUR::getNewSongFromArtists.js::getNewSongFromArtist'))
 
-const getNewSongFromArtists = (user: Object, artists: Array, tracks: Array = []) => {
+const getNewSongFromArtists = (user: Object, artists: Array, tracks: Array = []) =>
   // TODO rework pour faire un appel getNewSongFromArtisten boucle plutot que sur getNewSongFromArtists
-  return getNewSongFromArtist(user, artists.splice(0, 1)[0]).then((result = []) => {
+  getNewSongFromArtist(user, artists.splice(0, 1)[0]).then((result = []) => {
     const nextTracks = [...tracks, ...result]
     return artists.length > 0
       ? getNewSongFromArtists(user, artists, nextTracks)
       : Promise.resolve(nextTracks)
   })
-}
 
 export default (username: String, artists: Array) =>
   getUserWithToken(username).then((user) => getNewSongFromArtists(user, artists))
