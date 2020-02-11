@@ -1,6 +1,7 @@
 import Axios from 'axios'
 
 import getUserWithToken from './getUserWithToken'
+import { getParams } from './utils'
 
 const debug = false
 
@@ -9,10 +10,7 @@ const getPlaylists = (
   playlists?: Array = [],
   uri?: String = 'https://api.spotify.com/v1/me/playlists?limit=50'
 ) =>
-  Axios.get(uri, {
-    params: { market: user.country },
-    headers: { Authorization: `Bearer ${user.access_token}` },
-  })
+  Axios.get(uri, getParams({ market: user.country }, user))
     .then(({ data }) => {
       const nextPlaylists = [
         ...playlists,

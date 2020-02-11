@@ -1,6 +1,5 @@
 import Axios from 'axios'
 import moment from 'moment'
-import qs from 'query-string'
 
 import { getSpotParams, getUser, setUser } from '../commonBDD'
 
@@ -13,6 +12,13 @@ const getHeaders = (spotParams: Object) => ({
   },
 })
 
+const getParams = (user) => {
+  const params = new URLSearchParams()
+  params.append('grant_type', 'refresh_token')
+  params.append('refresh_token', user.refresh_token)
+  return params
+}
+
 export default (username: String) =>
   getUser(username).then((user: Object): Promise<String> => {
     let updatedUser
@@ -20,7 +26,7 @@ export default (username: String) =>
       .then((spotParams: Object) =>
         Axios.post(
           'https://accounts.spotify.com/api/token',
-          qs.stringify({ grant_type: 'refresh_token', refresh_token: user.refresh_token }),
+          getParams(user),
           getHeaders(spotParams)
         )
       )

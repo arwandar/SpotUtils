@@ -1,16 +1,11 @@
 import Axios from 'axios'
-import qs from 'query-string'
 
-import { getUserWithToken } from '../commonSpotify'
+import { getParams, getUserWithToken } from '../commonSpotify'
 
 const getNewAlbumsFromArtist = (user: Object, artist: Object) =>
   Axios.get(
-    `https://api.spotify.com/v1/search?${qs.stringify({
-      market: 'FR',
-      type: 'album',
-      q: `tag:new artist:${artist.name}`,
-    })}`,
-    { headers: { Authorization: `Bearer ${user.access_token}` } }
+    'https://api.spotify.com/v1/search',
+    getParams({ market: 'FR', type: 'album', q: `tag:new artist:${artist.name}` }, user)
   )
     .then(({ data }) => {
       if (data.albums.total === 0) return Promise.resolve([])
@@ -27,11 +22,8 @@ const getNewSongFromArtist = (user: Object, artist: Object) =>
     .then((albums) =>
       albums.length > 0
         ? Axios.get(
-            `https://api.spotify.com/v1/albums?${qs.stringify({
-              ids: albums.toString(),
-              market: 'FR',
-            })}`,
-            { headers: { Authorization: `Bearer ${user.access_token}` } }
+            'https://api.spotify.com/v1/albums',
+            getParams({ ids: albums.toString(), market: 'FR' }, user)
           )
         : Promise.resolve({})
     )

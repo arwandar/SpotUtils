@@ -14,7 +14,6 @@
     "express": "4.17.1",
     "moment": "2.24.0",
     "node-persist": "3.0.5",
-    "query-string": "6.10.1",
     "random-js": "2.1.0"
   },
   "devDependencies": {

@@ -2,6 +2,7 @@ import Axios from 'axios'
 
 import { updateTracksGist } from '../commonLog'
 import getUserWithToken from './getUserWithToken'
+import { getParams } from './utils'
 
 const debug = false
 
@@ -10,10 +11,7 @@ const getSavedTracks = (
   tracks?: Array = [],
   uri?: String = 'https://api.spotify.com/v1/me/tracks?limit=50'
 ) =>
-  Axios.get(uri, {
-    params: { market: user.country },
-    headers: { Authorization: `Bearer ${user.access_token}` },
-  })
+  Axios.get(uri, getParams({ market: user.country }, user))
     .then(({ data }) => {
       const nextTracks = [
         ...tracks,

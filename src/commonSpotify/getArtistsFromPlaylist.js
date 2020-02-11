@@ -1,28 +1,26 @@
 import Axios from 'axios'
 
 import getUserWithToken from './getUserWithToken'
+import { getHeaders } from './utils'
 
-const getArtistsFromPlaylist = (user: Object, playlistId: string, offset?: Number = 0) =>
-  Axios.get(
-    `https://api.spotify.com/v1/playlists/${playlistId}/tracks?fields=total,items(track(artists(id)))&limit=100&offset=${offset}`,
-    { headers: { Authorization: `Bearer ${user.access_token}` } }
-  )
+const getArtistsFromPlaylist = (user: Object, uri: string, artists?: Array<string> = []) =>
+  Axios.get(uri, getHeaders(user))
     .then(({ data }) => {
-      const uniq = (a) => [...new Set(a)]
-
       const artistIds = data.items.reduce(
         (acu, { track }) => [...acu, ...track.artists.map(({ id }) => id)],
-        []
+        artists
       )
 
-      if (data.total > offset + 100) {
-        return getArtistsFromPlaylist(user, offset + 100).then((result) =>
-          Promise.resolve(uniq(artistIds.concat(result)))
-        )
-      }
-      return Promise.resolve(uniq(artistIds))
+      return data.next
+        ? getArtistsFromPlaylist(user, data.next, artistIds)
+        : Promise.resolve([...new Set(artistIds)])
     })
-    .catch(() => console.log('ERREUR::getArtistsFromPlaylist.js'))
+    .catch((e) => console.log('ERREUR::getArtistsFromPlaylist.js', e))
 
 export default (username: String, playlistId: string) =>
-  getUserWithToken(username).then((user) => getArtistsFromPlaylist(user, playlistId))
+  getUserWithToken(username).then((user) =>
+    getArtistsFromPlaylist(
+      user,
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?fields=next%2Citems(track(artists(id)))&limit=100&offset=0`
+    )
+  )

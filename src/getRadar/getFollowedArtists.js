@@ -1,13 +1,13 @@
 import Axios from 'axios'
 
-import { getUserWithToken } from '../commonSpotify'
+import { getHeaders, getUserWithToken } from '../commonSpotify'
 
 const getFollowedArtists = (
   user: Object,
   artists: Array = [],
   url: String = 'https://api.spotify.com/v1/me/following?type=artist&limit=50'
 ) =>
-  Axios.get(url, { headers: { Authorization: `Bearer ${user.access_token}` } })
+  Axios.get(url, getHeaders(user))
     .then(({ data }) => {
       const nextArtists = [
         ...artists,
