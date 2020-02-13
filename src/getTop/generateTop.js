@@ -53,9 +53,9 @@ const process = (playlistsSources, user, playlistsTarget) => {
       playlistsSources.forEach((pS) => {
         const tracks = pS.artists
           .sort((a, b) => dico[a].localeCompare(dico[b]))
-          .map((a) => top[a])
+          .map((a) => top[a].slice(0, pS.qt))
           .flat()
-        const targetName = pS.name.replace('[TOP_5]', '[GEN_5]')
+        const targetName = pS.name.replace('[TOP_', '[GEN_')
         const pT = playlistsTarget.find((p) => targetName === p.name)
 
         return pT
@@ -69,22 +69,25 @@ const process = (playlistsSources, user, playlistsTarget) => {
     })
 }
 
-const generateTopFive = (user: Object) => {
-  console.log(`topFive for ${user.name}`)
+const generateTop = (user: Object) => {
+  console.log(`top for ${user.name}`)
   let playlistsTarget
   return getPlaylists(user.name)
     .then((res) => {
-      playlistsTarget = res.filter(({ name }) => /\[GEN_5\].*/.test(name))
+      playlistsTarget = res.filter(({ name }) => /\[GEN_\d\].*/.test(name))
 
       return Promise.all(
         res
-          .filter(({ name }) => /\[TOP_5\].*/.test(name))
+          .filter(({ name }) => /\[TOP_\d\].*/.test(name))
           .map(({ id, name }) =>
-            getArtistsFromPlaylist(user.name, id).then((artists) => ({ artists, id, name }))
+            getArtistsFromPlaylist(user.name, id).then((artists) => {
+              const qt = Number.parseInt(name.match(/\[TOP_(\d)\].*/)[1], 10)
+              return { artists, id, name, qt: qt || 10 }
+            })
           )
       )
     })
     .then((res) => (res.length > 0 ? process(res, user, playlistsTarget) : Promise.resolve()))
 }
 
-export default (username: String) => getUserWithToken(username).then(generateTopFive)
+export default (username: String) => getUserWithToken(username).then(generateTop)
