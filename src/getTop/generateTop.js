@@ -1,4 +1,5 @@
 import Axios from 'axios'
+import { MersenneTwister19937, Random } from 'random-js'
 
 import {
   getArtistsFromPlaylist,
@@ -8,6 +9,8 @@ import {
   postHeaders,
   refillPlaylist,
 } from '../commonSpotify'
+
+const random = new Random(MersenneTwister19937.autoSeed())
 
 const top = {}
 const dico = {}
@@ -51,12 +54,17 @@ const process = (playlistsSources, user, playlistsTarget) => {
     .then(() => getArtistsName(nameArtists, user))
     .then(() => {
       playlistsSources.forEach((pS) => {
-        const tracks = pS.artists
+        let tracks = pS.artists
           .sort((a, b) => dico[a].localeCompare(dico[b]))
           .map((a) => top[a].slice(0, pS.qt))
           .flat()
         const targetName = pS.name.replace('[TOP_', '[GEN_')
         const pT = playlistsTarget.find((p) => targetName === p.name)
+
+        if (/[S]/.test(pS.name))
+          tracks = tracks
+            .map((track) => ({ uri: track, note: random.integer(0, 10000) }))
+            .sort((a, b) => b.note - a.note)
 
         return pT
           ? refillPlaylist(user, pT.id, tracks)
