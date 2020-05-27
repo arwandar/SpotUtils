@@ -12,6 +12,7 @@
   "dependencies": {
     "@octokit/rest": "17.9.2",
     "axios": "0.19.2",
+    "core-js": "3.6.5",
     "express": "4.17.1",
     "moment": "2.24.0",
     "node-persist": "3.0.5",
@@ -28,7 +29,6 @@
     "eslint": "7.1.0",
     "eslint-config-airbnb-base": "14.1.0",
     "eslint-config-prettier": "6.11.0",
-    "eslint-loader": "4.0.2",
     "eslint-plugin-flowtype": "5.1.0",
     "eslint-plugin-import": "2.20.2",
     "eslint-plugin-sonarjs": "0.5.0",

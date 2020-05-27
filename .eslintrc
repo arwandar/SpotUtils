@@ -1,8 +1,5 @@
 {
   "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    },
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
@@ -10,7 +7,6 @@
   "plugins": ["flowtype", "import", "sonarjs"],
   "extends": [
     "eslint:recommended",
-
     "plugin:import/errors",
     "plugin:flowtype/recommended",
     "airbnb-base",
@@ -44,14 +40,9 @@
       }
     ]
   },
-  "globals": {
-    "__dirname": true,
-    "__APP_VERSION__": true
-  },
   "env": {
-    "browser": true,
     "es6": true,
-    "commonjs": true
+    "node": true
   },
   "settings": {
     "flowtype": {

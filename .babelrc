@@ -6,11 +6,16 @@
         "useBuiltIns": "usage",
         "corejs": 3,
         "targets": {
-          "browsers": ["firefox >= 52"]
+          "node": true
         }
       }
     ],
-    "@babel/flow"
+    [
+      "@babel/preset-flow",
+      {
+        "all": true
+      }
+    ]
   ],
   "plugins": []
 }
