@@ -7,13 +7,13 @@
     "sourceType": "module"
   },
   "parser": "babel-eslint",
-  "plugins": ["flowtype", "import", "react", "sonarjs"],
+  "plugins": ["flowtype", "import", "sonarjs"],
   "extends": [
     "eslint:recommended",
-    "plugin:react/recommended",
+
     "plugin:import/errors",
     "plugin:flowtype/recommended",
-    "airbnb",
+    "airbnb-base",
     "plugin:sonarjs/recommended",
     "prettier"
   ],
@@ -54,7 +54,6 @@
     "commonjs": true
   },
   "settings": {
-    "import/resolver": "webpack",
     "flowtype": {
       "onlyFilesWithFlowAnnotation": false
     }
