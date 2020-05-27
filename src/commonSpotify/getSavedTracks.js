@@ -2,7 +2,7 @@ import Axios from 'axios'
 
 import { updateTracksGist } from '../commonLog'
 import getUserWithToken from './getUserWithToken'
-import { getParams } from './utils'
+import { gestionErreur, getParams } from './utils'
 
 const debug = false
 
@@ -31,9 +31,7 @@ const getSavedTracks = (
         ? getSavedTracks(user, nextTracks, data.next)
         : Promise.resolve({ user, savedTracks: nextTracks })
     })
-    .catch(() => {
-      console.log('ERREUR::getSavedTracks.js::33')
-    })
+    .catch((e) => gestionErreur(e, `getSavedTracks ${user.name}`))
 
 export default (username: String) =>
   getUserWithToken(username)

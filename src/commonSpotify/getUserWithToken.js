@@ -2,6 +2,7 @@ import Axios from 'axios'
 import moment from 'moment'
 
 import { getSpotParams, getUser, setUser } from '../commonBDD'
+import { gestionErreur } from './utils'
 
 const formatSpotKeys = (spotParams: Object) => `${spotParams.client_id}:${spotParams.client_secret}`
 
@@ -40,5 +41,5 @@ export default (username: String) =>
         return setUser(updatedUser)
       })
       .then(() => updatedUser)
-      .catch(() => console.log('ERREUR::getUserWithToken.js'))
+      .catch((e) => gestionErreur(e, `getUserWithToken ${username}`))
   })

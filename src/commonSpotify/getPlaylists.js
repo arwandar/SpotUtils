@@ -1,7 +1,7 @@
 import Axios from 'axios'
 
 import getUserWithToken from './getUserWithToken'
-import { getParams } from './utils'
+import { gestionErreur, getParams } from './utils'
 
 const debug = false
 
@@ -26,8 +26,6 @@ const getPlaylists = (
         ? getPlaylists(user, nextPlaylists, data.next)
         : Promise.resolve(nextPlaylists)
     })
-    .catch((erreur) => {
-      console.log('ERREUR::getPlaylists.js::33', erreur)
-    })
+    .catch((e) => gestionErreur(e, 'getPlaylists'))
 
 export default (username: String) => getUserWithToken(username).then(getPlaylists)

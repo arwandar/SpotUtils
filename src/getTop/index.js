@@ -13,6 +13,5 @@ export default (app) => {
     getUsernames()
       .then((usernames) => topFor(usernames))
       .then(() => res.status(200).send('ok'))
-      .catch((err) => console.error('/top', err))
   })
 }

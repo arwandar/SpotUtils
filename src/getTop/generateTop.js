@@ -2,6 +2,7 @@ import Axios from 'axios'
 import { MersenneTwister19937, Random } from 'random-js'
 
 import {
+  gestionErreur,
   getArtistsFromPlaylist,
   getParams,
   getPlaylists,
@@ -28,7 +29,7 @@ const getArtistTop = (artists, user) => {
       top[id] = data.tracks.map((track) => track.uri)
       return getArtistTop(artists, user)
     })
-    .catch((e) => console.log('ERREUR::getArtistTop.js::e =>', e))
+    .catch((e) => gestionErreur(e, 'getArtistTop'))
 }
 
 const getArtistsName = (artists, user) =>
@@ -44,7 +45,7 @@ const getArtistsName = (artists, user) =>
           })
           return getArtistsName(artists, user)
         })
-        .catch((e) => console.log('ERREUR::getArtistsName.js::e =>', e))
+        .catch((e) => gestionErreur(e, 'getArtistsName'))
 
 const process = (playlistsSources, user, playlistsTarget) => {
   const artists = playlistsSources.reduce((accu, { artists: a }) => [...accu, ...a], [])
@@ -72,7 +73,9 @@ const process = (playlistsSources, user, playlistsTarget) => {
               `https://api.spotify.com/v1/users/${user.id}/playlists`,
               { name: targetName },
               postHeaders(user)
-            ).then(({ data }) => refillPlaylist(user, data.id, tracks))
+            )
+              .then(({ data }) => refillPlaylist(user, data.id, tracks))
+              .catch((e) => gestionErreur(e, 'generateTop::process'))
       })
     })
 }

@@ -67,9 +67,7 @@ const genereateBuggyTracks = (user: Object, tracks: Array) => {
       ...notPlayables,
       ...whiteNoise,
       ...toAdd,
-    ]).catch(() => {
-      console.log('ERREUR::genereateBuggyTracks.js')
-    })
+    ])
   })
 }
 

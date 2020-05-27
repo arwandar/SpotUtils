@@ -1,7 +1,7 @@
 import Axios from 'axios'
 
 import getUserWithToken from './getUserWithToken'
-import { getHeaders } from './utils'
+import { gestionErreur, getHeaders } from './utils'
 
 const getArtistsFromPlaylist = (user: Object, uri: string, artists?: Array<string> = []) =>
   Axios.get(uri, getHeaders(user))
@@ -15,7 +15,7 @@ const getArtistsFromPlaylist = (user: Object, uri: string, artists?: Array<strin
         ? getArtistsFromPlaylist(user, data.next, artistIds)
         : Promise.resolve([...new Set(artistIds)])
     })
-    .catch((e) => console.log('ERREUR::getArtistsFromPlaylist.js', e))
+    .catch((e) => gestionErreur(e, 'getArtistsFromPlaylist'))
 
 export default (username: String, playlistId: string) =>
   getUserWithToken(username).then((user) =>

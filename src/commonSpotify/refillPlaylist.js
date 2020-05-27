@@ -1,6 +1,6 @@
 import Axios from 'axios'
 
-import { postHeaders } from './utils'
+import { gestionErreur, postHeaders } from './utils'
 
 const cleanTracksForCall = (tracks) =>
   typeof tracks[0] === 'object' ? tracks.map(({ uri }) => uri) : tracks
@@ -14,7 +14,7 @@ const addTracksToPlaylist = (user: Object, idPlaylist: String, tracks: Array) =>
         postHeaders(user)
       )
         .then(() => addTracksToPlaylist(user, idPlaylist, tracks))
-        .catch(() => console.log('ERREUR::refillPlaylist.js::addTracksToPlaylist'))
+        .catch((e) => gestionErreur(e, 'addTracksToPlaylist'))
 
 const refillPlaylist = (user: Object, idPlaylist: String, tracks: Array) =>
   Axios.put(
@@ -23,7 +23,7 @@ const refillPlaylist = (user: Object, idPlaylist: String, tracks: Array) =>
     postHeaders(user)
   )
     .then(() => addTracksToPlaylist(user, idPlaylist, tracks))
-    .catch(() => console.log('ERREUR::refillPlaylist.js::refillPlaylist'))
+    .catch((e) => gestionErreur(e, 'refillPlaylist'))
 
 export default (user: Object, idPlaylist: String, tracks: Array) =>
   refillPlaylist(user, idPlaylist, cleanTracksForCall(tracks))

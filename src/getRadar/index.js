@@ -43,6 +43,5 @@ export default (app) => {
       .then(() => getUser(req.params.user))
       .then((user) => refillPlaylist(user, user.defaultPlaylists.radar, newTracks))
       .then(() => res.status(200).send('ok'))
-      .catch((err) => console.error('/radar', err))
   })
 }

@@ -1,6 +1,6 @@
 import Axios from 'axios'
 
-import { getParams, getUserWithToken } from '../commonSpotify'
+import { gestionErreur, getParams, getUserWithToken } from '../commonSpotify'
 
 const getNewAlbumsFromArtist = (user: Object, artist: Object) =>
   Axios.get(
@@ -15,7 +15,7 @@ const getNewAlbumsFromArtist = (user: Object, artist: Object) =>
 
       return Promise.resolve(albumIds)
     })
-    .catch(() => console.log('ERREUR::getNewSongFromArtists.js::getNewAlbumsFromArtist'))
+    .catch((e) => gestionErreur(e, 'getNewAlbumsFromArtist'))
 
 const getNewSongFromArtist = (user: Object, artist: Object) =>
   getNewAlbumsFromArtist(user, artist)
@@ -43,7 +43,7 @@ const getNewSongFromArtist = (user: Object, artist: Object) =>
             )
           )
     )
-    .catch(() => console.log('ERREUR::getNewSongFromArtists.js::getNewSongFromArtist'))
+    .catch((e) => gestionErreur(e, 'getNewSongFromArtist'))
 
 const getNewSongFromArtists = (user: Object, artists: Array, tracks: Array = []) =>
   // TODO rework pour faire un appel getNewSongFromArtisten boucle plutot que sur getNewSongFromArtists

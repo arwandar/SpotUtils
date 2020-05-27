@@ -45,10 +45,15 @@ export const getGistParams = (): Promise<Object> =>
       }
       return gistParams
     })
-    .catch(() => console.log('erreur lors de getSpotParams'))
+    .catch(() => console.log('erreur lors de getGistParams'))
 
 export const getOldTracks = (): Promise<Array<Object>> =>
   storage.getItem('RadarTracks').catch(() => console.log('erreur lors de getOldTracks'))
 
 export const setOldTracks = (oldTracks: Array): Promise<void> =>
   storage.setItem('RadarTracks', oldTracks)
+
+export const getIftttUser = () =>
+  storage.getItem('iftttUser').catch(() => console.log('erreur lors de getIftttUser'))
+
+export const setIftttUser = (val) => storage.setItem('iftttUser', val)

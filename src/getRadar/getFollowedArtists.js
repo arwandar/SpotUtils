@@ -1,6 +1,6 @@
 import Axios from 'axios'
 
-import { getHeaders, getUserWithToken } from '../commonSpotify'
+import { gestionErreur, getHeaders, getUserWithToken } from '../commonSpotify'
 
 const getFollowedArtists = (
   user: Object,
@@ -17,6 +17,6 @@ const getFollowedArtists = (
       if (data.artists.next != null) return getFollowedArtists(user, nextArtists, data.artists.next)
       return Promise.resolve(nextArtists)
     })
-    .catch(() => console.log('ERREUR::getFollowedArtists.js'))
+    .catch((e) => gestionErreur(e, 'getFollowedArtists'))
 
 export default (username: String) => getUserWithToken(username).then(getFollowedArtists)

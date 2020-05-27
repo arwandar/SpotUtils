@@ -1,7 +1,7 @@
 import Axios from 'axios'
 
 import getUserWithToken from './getUserWithToken'
-import { getParams } from './utils'
+import { gestionErreur, getParams } from './utils'
 
 const getAudioFeatures = (user: Object, ids: Array<string>, audioFeatures: Array<Object> = []) =>
   Axios.get(
@@ -14,9 +14,9 @@ const getAudioFeatures = (user: Object, ids: Array<string>, audioFeatures: Array
         ? getAudioFeatures(user, ids, nextAudioFeatures)
         : Promise.resolve(nextAudioFeatures)
     })
-    .catch(() => {
-      console.log('ERREUR::getAudioFeatures.js::33')
-    })
+    .catch((e) => gestionErreur(e, 'getAudioFeatures'))
 
 export default (username: string, ids: Array<string>) =>
-  getUserWithToken(username).then((user) => getAudioFeatures(user, ids))
+  ids.length > 0
+    ? getUserWithToken(username).then((user) => getAudioFeatures(user, ids))
+    : Promise.resolve([])

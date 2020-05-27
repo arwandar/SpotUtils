@@ -22,8 +22,16 @@ const processTracks = (data, usernames) => {
   return Object.values(tracksIndex)
 }
 
-const buggyTracks = (usernames, tracks) =>
-  Promise.all(usernames.map((username) => generateBuggyTracks(username, Object.values(tracks))))
+const processAllUsers = (usernames, callback) => {
+  const newUsernames = [...usernames]
+
+  const recursif = () => {
+    const [username] = newUsernames.splice(0, 1)
+    return username ? callback(username).finally(recursif) : Promise.resolve()
+  }
+
+  return recursif()
+}
 
 const reducedShuffle = (tracks, artistsToDelete, playlistName) =>
   generateSortedShuffle(
@@ -60,30 +68,27 @@ export default (app) => {
         data.forEach((artist, index) => {
           artistsToDelete[usernames[index]] = artist
         })
-        return Promise.all(
-          usernames.map((username) =>
-            generateSortedShuffle(
-              username,
-              Object.values(tracks).filter((t) => t.owners.includes(username)),
-              'shuffleBiblio'
-            )
+
+        return processAllUsers(usernames, (username) =>
+          generateSortedShuffle(
+            username,
+            Object.values(tracks).filter((t) => t.owners.includes(username)),
+            'shuffleBiblio'
           )
         )
       })
       .then(() =>
-        Promise.all(
-          usernames.map((username) =>
-            generateSortedShuffle(
-              username,
-              tracks.filter((t) => {
-                if (!filterByUser(username, t, artistsToDelete)) {
-                  excludes[`ShufflePerso_${username}`].push(formatExclude(t))
-                  return false
-                }
-                return true
-              }),
-              'shufflePerso'
-            )
+        processAllUsers(usernames, (username) =>
+          generateSortedShuffle(
+            username,
+            tracks.filter((t) => {
+              if (!filterByUser(username, t, artistsToDelete)) {
+                excludes[`ShufflePerso_${username}`].push(formatExclude(t))
+                return false
+              }
+              return true
+            }),
+            'shufflePerso'
           )
         )
       )
@@ -103,9 +108,12 @@ export default (app) => {
       )
       .then(() => reducedShuffle(tracks, artistsToDelete, 'morningShuffle'))
       .then(() => reducedShuffle(tracks, artistsToDelete, 'nightShuffle'))
-      .then(() => buggyTracks(usernames, tracks))
+      .then(() =>
+        processAllUsers(usernames, (username) =>
+          generateBuggyTracks(username, Object.values(tracks))
+        )
+      )
       .then(() => updateExclusionGist(excludes))
       .then(() => res.status(200).send('ok'))
-      .catch((err) => console.error('/shuffle', err))
   })
 }
