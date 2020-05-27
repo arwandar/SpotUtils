@@ -23,14 +23,7 @@ const processTracks = (data, usernames) => {
 }
 
 const buggyTracks = (usernames, tracks) =>
-  Promise.all(
-    usernames.map((username) =>
-      generateBuggyTracks(
-        username,
-        Object.values(tracks).filter((t) => t.owners.includes(username))
-      )
-    )
-  )
+  Promise.all(usernames.map((username) => generateBuggyTracks(username, Object.values(tracks))))
 
 const reducedShuffle = (tracks, artistsToDelete, playlistName) =>
   generateSortedShuffle(

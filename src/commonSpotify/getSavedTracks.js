@@ -16,7 +16,7 @@ const getSavedTracks = (
       const nextTracks = [
         ...tracks,
         ...data.items.map(({ track }) => ({
-          uri: track.uri,
+          uri: (track.linked_from && track.linked_from.uri) || track.uri,
           id: track.id,
           name: track.name,
           artist_id: track.artists[0].id,
