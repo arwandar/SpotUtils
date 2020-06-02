@@ -1,47 +1,89 @@
 import moment from 'moment'
 
-import { getOldTracks, getUser, setOldTracks } from '../commonBDD'
-import { refillPlaylist } from '../commonSpotify'
+import { addArtistsTracks, getArtist, getUser, setArtist } from '../commonBDD'
+import { Axios, gestionErreur, getParams, refillPlaylist } from '../commonSpotify'
 import getFollowedArtists from './getFollowedArtists'
-import getNewSongFromArtists from './getNewSongFromArtists'
+
+const getNewAlbumIds = (user, artist) =>
+  Axios.get(
+    'search',
+    getParams({ market: 'FR', type: 'album', q: `tag:new artist:${artist.name}` }, user)
+  )
+    .then(({ data }) => {
+      if (data.albums.total === 0) return Promise.resolve([])
+      const albumIds = data.albums.items
+        .filter((item) => item.artists.some(({ id }) => id === artist.id))
+        .map((album) => album.id)
+
+      return Promise.resolve(albumIds)
+    })
+
+    .catch((e) => gestionErreur(e, 'getNewAlbumsFromArtist'))
+
+const getTracks = (user, queue, tracks = []) => {
+  if (queue.length === 0) return Promise.resolve(tracks)
+
+  const currentArtist = queue.shift()
+  const { id } = currentArtist
+
+  return getArtist(id).then((artist) => {
+    const filterTracks = (toFilter) =>
+      toFilter.filter((track) =>
+        moment(track.album.release_date).isAfter(moment().subtract(1, 'w'))
+      )
+
+    const setNewTracks = () =>
+      getNewAlbumIds(user, currentArtist)
+        .then((albums) =>
+          albums.length > 0
+            ? Axios.get('albums', getParams({ ids: albums.toString(), market: 'FR' }, user))
+            : Promise.resolve({})
+        )
+        .then(({ data }) => {
+          if (!data) return addArtistsTracks(currentArtist.id, [])
+          return addArtistsTracks(
+            currentArtist.id,
+            data.albums.reduce(
+              (accu, album) => [
+                ...accu,
+                ...album.tracks.items.map((track) => ({
+                  ...track,
+                  album: {
+                    id: album.id,
+                    name: album.name,
+                    release_date: album.release_date,
+                    release_date_precision: album.release_date_precision,
+                    uri: album.uri,
+                  },
+                })),
+              ],
+              []
+            )
+          )
+        })
+        .then(() => getArtist(id))
+        .then((storedArtist) =>
+          getTracks(user, queue, [...tracks, ...filterTracks(storedArtist.tracks)])
+        )
+
+    if (!artist || !artist.lastCheckNewTracks) return setArtist(currentArtist).then(setNewTracks)
+    if (!moment(artist.lastCheckNewTracks).isSame(moment(), 'd')) return setNewTracks()
+    return getTracks(user, queue, [...tracks, ...filterTracks(artist.tracks)])
+  })
+}
 
 export default (app) => {
   app.get('/api/radar/:user', (req, res) => {
     console.log(`/radar ${req.params.user}`)
+    let user
 
-    let tracks
-    let newTracks
-
-    getFollowedArtists(req.params.user)
-      .then((artists) => getNewSongFromArtists(req.params.user, artists))
-      .then((ts: Array) => {
-        tracks = ts
-        return getOldTracks()
+    getUser(req.params.user)
+      .then((storedUser) => {
+        user = storedUser
+        return getFollowedArtists(user.name)
       })
-      .then((oTs) => {
-        const oldTracks = oTs || {}
-
-        newTracks = Object.values(tracks).filter((track) => {
-          if (track.release_date)
-            return moment(track.release_date).isAfter(moment().subtract(6, 'days'))
-          const trackId = track.uri.match(/.*:.*:(\w*)/)[1]
-          return (
-            !oldTracks.trackId || moment(oldTracks[trackId]).isAfter(moment().subtract(6, 'days'))
-          )
-        })
-
-        return setOldTracks(
-          newTracks.reduce((accu, track) => {
-            const trackId = track.uri.match(/.*:.*:(\w*)/)[1]
-            const newAccu = { ...accu }
-            if (!newAccu.trackId) newAccu[trackId] = moment().format()
-            if (track.release_date) newAccu[trackId] = moment(track.release_date).format()
-            return newAccu
-          }, oldTracks)
-        )
-      })
-      .then(() => getUser(req.params.user))
-      .then((user) => refillPlaylist(user, user.defaultPlaylists.radar, newTracks))
+      .then((artists) => getTracks(user, artists))
+      .then((newTracks) => refillPlaylist(user, user.defaultPlaylists.radar, newTracks))
       .then(() => res.status(200).send('ok'))
   })
 }

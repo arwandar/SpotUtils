@@ -1,16 +1,10 @@
-import Axios from 'axios'
-
 import { updateTracksGist } from '../commonLog'
 import getUserWithToken from './getUserWithToken'
-import { gestionErreur, getParams } from './utils'
+import Axios, { gestionErreur, getParams } from './utils'
 
 const debug = false
 
-const getSavedTracks = (
-  user: Object,
-  tracks?: Array = [],
-  uri?: String = 'https://api.spotify.com/v1/me/tracks?limit=50'
-) =>
+const getSavedTracks = (user: Object, tracks?: Array = [], uri?: String = 'me/tracks?limit=50') =>
   Axios.get(uri, getParams({ market: user.country }, user))
     .then(({ data }) => {
       const nextTracks = [
@@ -27,7 +21,7 @@ const getSavedTracks = (
           raw: track,
         })),
       ]
-      return data.next != null && (!debug || tracks.length < 200)
+      return data.next != null && (!debug || tracks.length < 100)
         ? getSavedTracks(user, nextTracks, data.next)
         : Promise.resolve({ user, savedTracks: nextTracks })
     })

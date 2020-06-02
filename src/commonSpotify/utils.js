@@ -1,6 +1,17 @@
-import Axios from 'axios'
+import axios from 'axios'
+import moment from 'moment'
 
 import { getIftttUser } from '../commonBDD'
+
+const Axios = axios.create({
+  baseURL: 'https://api.spotify.com/v1/',
+  headers: {
+    post: { 'Content-Type': 'application/json' },
+  },
+  // proxy: false,
+})
+
+export default Axios
 
 export const getHeaders = (user) => ({
   headers: { Authorization: `Bearer ${user.access_token}` },
@@ -9,24 +20,26 @@ export const getHeaders = (user) => ({
 export const postHeaders = (user) => ({
   headers: {
     Authorization: `Bearer ${user.access_token}`,
-    'Content-Type': 'application/json',
   },
 })
 
 export const getParams = (params, user) => ({ params, ...getHeaders(user) })
 
 export const gestionErreur = (e, functionName) => {
-  console.error(`ERREUR: ${functionName}`)
-  if (e.isAxiosError) {
+  console.error(`ERREUR::${moment().toISOString()}  ${functionName}`)
+  if (e && e.isAxiosError) {
     console.log('url => ', e.config && e.config.url)
     console.log('data => ', e.config && e.config.data)
     console.log('status => ', e.response && e.response.status)
 
     getIftttUser().then((iftttUser) =>
-      Axios.post(`https://maker.ifttt.com/trigger/error_occured/with/key/${iftttUser}`, {
-        value1: e.response.status,
-        value2: e.config.url,
-      })
+      axios
+        .post(`https://maker.ifttt.com/trigger/error_occured/with/key/${iftttUser}`, {
+          value1: e.response.status,
+          value2: e.config.url,
+        })
+        .catch(() => console.error('Notif Ifttt non envoyée'))
     )
   } else console.log('e => ', e)
+  return Promise.reject()
 }

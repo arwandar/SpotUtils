@@ -1,11 +1,9 @@
-import Axios from 'axios'
-
-import { gestionErreur, getHeaders, getUserWithToken } from '../commonSpotify'
+import { Axios, gestionErreur, getHeaders, getUserWithToken } from '../commonSpotify'
 
 const getFollowedArtists = (
   user: Object,
   artists: Array = [],
-  url: String = 'https://api.spotify.com/v1/me/following?type=artist&limit=50'
+  url: String = 'me/following?type=artist&limit=50'
 ) =>
   Axios.get(url, getHeaders(user))
     .then(({ data }) => {

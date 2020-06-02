@@ -1,7 +1,8 @@
-import Axios from 'axios'
 import { MersenneTwister19937, Random } from 'random-js'
 
+import { getArtist, setArtist, setArtistTop } from '../commonBDD/artists'
 import {
+  Axios,
   gestionErreur,
   getArtistsFromPlaylist,
   getParams,
@@ -13,92 +14,66 @@ import {
 
 const random = new Random(MersenneTwister19937.autoSeed())
 
-const top = {}
-const dico = {}
+const processSource = (user, source, targets) =>
+  getArtistsFromPlaylist(user.name, source.id).then((artists) => {
+    console.log('top =>', source.name)
+    artists.sort((a, b) => a.name.localeCompare(b.name))
 
-const getArtistTop = (artists, user) => {
-  if (artists.length === 0) return Promise.resolve()
+    const qt = Number.parseInt(source.name.match(/\[TOP_(\d)\].*/)[1], 10) || 10
 
-  const id = artists.pop()
+    const getTracks = (queue, tracks = []) => {
+      if (queue.length === 0) return Promise.resolve(tracks)
 
-  return Axios.get(
-    `https://api.spotify.com/v1/artists/${id}/top-tracks`,
-    getParams({ country: user.country }, user)
-  )
-    .then(({ data }) => {
-      top[id] = data.tracks.map((track) => track.uri)
-      return getArtistTop(artists, user)
-    })
-    .catch((e) => gestionErreur(e, 'getArtistTop'))
-}
+      const currentArtist = queue.shift()
+      const { id } = currentArtist
 
-const getArtistsName = (artists, user) =>
-  artists.length === 0
-    ? Promise.resolve()
-    : Axios.get(
-        'https://api.spotify.com/v1/artists',
-        getParams({ ids: artists.splice(0, 50).toString() }, user)
-      )
-        .then(({ data }) => {
-          data.artists.forEach((artist) => {
-            dico[artist.id] = artist.name
-          })
-          return getArtistsName(artists, user)
-        })
-        .catch((e) => gestionErreur(e, 'getArtistsName'))
+      return getArtist(id).then((artist) => {
+        const setTopTrack = () =>
+          Axios.get(`artists/${id}/top-tracks`, getParams({ country: user.country }, user))
+            .then(({ data }) => setArtistTop(id, data.tracks))
+            .then((yop) => getTracks(queue, [...tracks, ...yop.slice(0, qt)]))
+            .catch((e) => gestionErreur(e, 'getArtistTop'))
 
-const process = (playlistsSources, user, playlistsTarget) => {
-  const artists = playlistsSources.reduce((accu, { artists: a }) => [...accu, ...a], [])
-  const topArtists = artists.filter((id) => !dico[id])
-  const nameArtists = artists.filter((id) => !top[id])
-  return getArtistTop(topArtists, user)
-    .then(() => getArtistsName(nameArtists, user))
-    .then(() => {
-      playlistsSources.forEach((pS) => {
-        let tracks = pS.artists
-          .sort((a, b) => dico[a].localeCompare(dico[b]))
-          .map((a) => top[a].slice(0, pS.qt))
-          .flat()
-        const targetName = pS.name.replace('[TOP_', '[GEN_')
-        const pT = playlistsTarget.find((p) => targetName === p.name)
+        if (!artist) return setArtist(currentArtist).then(setTopTrack)
+        if (!artist.top) return setTopTrack()
 
-        if (/[S]/.test(pS.name))
-          tracks = tracks
-            .map((track) => ({ uri: track, note: random.integer(0, 10000) }))
-            .sort((a, b) => b.note - a.note)
-
-        return pT
-          ? refillPlaylist(user, pT.id, tracks)
-          : Axios.post(
-              `https://api.spotify.com/v1/users/${user.id}/playlists`,
-              { name: targetName },
-              postHeaders(user)
-            )
-              .then(({ data }) => refillPlaylist(user, data.id, tracks))
-              .catch((e) => gestionErreur(e, 'generateTop::process'))
+        return getTracks(queue, [...tracks, ...artist.top.slice(0, qt)])
       })
+    }
+
+    return getTracks([...artists]).then((originalTracks) => {
+      let tracks = [...originalTracks]
+      const targetName = source.name.replace('[TOP_', '[GEN_')
+      const target = targets.find((p) => targetName === p.name)
+
+      if (/\[S\]/.test(source.name))
+        tracks = tracks
+          .map((track) => ({ ...track, note: random.integer(0, 10000) }))
+          .sort((a, b) => b.note - a.note)
+
+      return target
+        ? refillPlaylist(user, target.id, tracks)
+        : Axios.post(`users/${user.id}/playlists`, { name: targetName }, postHeaders(user))
+            .then(({ data }) => refillPlaylist(user, data.id, tracks))
+            .catch((e) => gestionErreur(e, 'generateTop::process'))
     })
-}
+  })
 
 const generateTop = (user: Object) => {
   console.log(`top for ${user.name}`)
-  let playlistsTarget
-  return getPlaylists(user.name)
-    .then((res) => {
-      playlistsTarget = res.filter(({ name }) => /\[GEN_\d\].*/.test(name))
+  let targets
+  return getPlaylists(user.name).then((playlists) => {
+    targets = playlists.filter(({ name }) => /\[GEN_\d\].*/.test(name))
+    const sources = playlists.filter(({ name }) => /\[TOP_\d\].*/.test(name))
 
-      return Promise.all(
-        res
-          .filter(({ name }) => /\[TOP_\d\].*/.test(name))
-          .map(({ id, name }) =>
-            getArtistsFromPlaylist(user.name, id).then((artists) => {
-              const qt = Number.parseInt(name.match(/\[TOP_(\d)\].*/)[1], 10)
-              return { artists, id, name, qt: qt || 10 }
-            })
-          )
-      )
-    })
-    .then((res) => (res.length > 0 ? process(res, user, playlistsTarget) : Promise.resolve()))
+    const recursif = () =>
+      sources.length > 0 && processSource(user, sources.pop(), targets).finally(recursif)
+
+    return recursif()
+  })
 }
 
-export default (username: String) => getUserWithToken(username).then(generateTop)
+export default (username: String) =>
+  getUserWithToken(username)
+    .then(generateTop)
+    .catch(() => {})

@@ -1,14 +1,12 @@
-import Axios from 'axios'
-
 import getUserWithToken from './getUserWithToken'
-import { gestionErreur, getParams } from './utils'
+import Axios, { gestionErreur, getParams } from './utils'
 
 const debug = false
 
 const getPlaylists = (
   user: Object,
   playlists?: Array = [],
-  uri?: String = 'https://api.spotify.com/v1/me/playlists?limit=50'
+  uri?: String = 'me/playlists?limit=50'
 ) =>
   Axios.get(uri, getParams({ market: user.country }, user))
     .then(({ data }) => {

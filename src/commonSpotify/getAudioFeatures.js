@@ -1,13 +1,8 @@
-import Axios from 'axios'
-
 import getUserWithToken from './getUserWithToken'
-import { gestionErreur, getParams } from './utils'
+import Axios, { gestionErreur, getParams } from './utils'
 
 const getAudioFeatures = (user: Object, ids: Array<string>, audioFeatures: Array<Object> = []) =>
-  Axios.get(
-    'https://api.spotify.com/v1/audio-features',
-    getParams({ ids: ids.splice(0, 100).join(',') }, user)
-  )
+  Axios.get('audio-features', getParams({ ids: ids.splice(0, 100).join(',') }, user))
     .then(({ data }) => {
       const nextAudioFeatures = [...audioFeatures, ...data.audio_features]
       return ids.length > 0
