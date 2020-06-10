@@ -8,7 +8,7 @@ const Axios = axios.create({
   headers: {
     post: { 'Content-Type': 'application/json' },
   },
-  // proxy: false,
+  proxy: false,
 })
 
 export default Axios

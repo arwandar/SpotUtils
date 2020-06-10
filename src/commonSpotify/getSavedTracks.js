@@ -11,7 +11,7 @@ const getSavedTracks = (user: Object, tracks?: Array = [], uri?: String = 'me/tr
         ...tracks,
         ...data.items.map(({ track }) => ({
           uri: (track.linked_from && track.linked_from.uri) || track.uri,
-          id: track.id,
+          id: (track.linked_from && track.linked_from.id) || track.id,
           name: track.name,
           artist_id: track.artists[0].id,
           artists_id: track.artists.map((t) => t.id),
@@ -27,6 +27,9 @@ const getSavedTracks = (user: Object, tracks?: Array = [], uri?: String = 'me/tr
     })
     .catch((e) => gestionErreur(e, `getSavedTracks ${user.name}`))
 
+const formatTrackToString = (t) =>
+  [t.raw.artists.map(({ name }) => name).join(', '), t.name, t.album_name, t.id].join('\t')
+
 export default (username: String) =>
   getUserWithToken(username)
     .then(getSavedTracks)
@@ -34,7 +37,7 @@ export default (username: String) =>
       updateTracksGist(
         `${user.name}`,
         savedTracks
-          .map((t) => `${t.raw.artists.map(({ name }) => name).join(', ')} \t ${t.name} \t ${t.id}`)
+          .map(formatTrackToString)
           .sort((a, b) => a.localeCompare(b))
           .join('\n')
       )
