@@ -1,7 +1,7 @@
 import moment from 'moment'
 
-import { addArtistsTracks, getArtist, getUser, setArtist } from '../commonBDD'
-import { Axios, gestionErreur, getParams, refillPlaylist } from '../commonSpotify'
+import { addArtistsTracks, getArtist, setArtist } from '../commonBDD'
+import { Axios, gestionErreur, getParams, getUserWithToken, refillPlaylist } from '../commonSpotify'
 import getFollowedArtists from './getFollowedArtists'
 
 const getNewAlbumIds = (user, artist) =>
@@ -77,7 +77,7 @@ export default (app) => {
     console.log(`/radar ${req.params.user}`)
     let user
 
-    getUser(req.params.user)
+    getUserWithToken(req.params.user)
       .then((storedUser) => {
         user = storedUser
         return getFollowedArtists(user.name)

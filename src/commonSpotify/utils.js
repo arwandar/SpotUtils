@@ -29,7 +29,7 @@ export const gestionErreur = (e, functionName) => {
   console.error(`ERREUR::${moment().toISOString()}  ${functionName}`)
   if (e && e.isAxiosError) {
     console.log('url => ', e.config && e.config.url)
-    console.log('data => ', e.config && e.config.data)
+    console.log('data => ', e.config && (e.config.data || e.config.params))
     console.log('status => ', e.response && e.response.status)
 
     getIftttUser().then((iftttUser) =>
@@ -37,6 +37,7 @@ export const gestionErreur = (e, functionName) => {
         .post(`https://maker.ifttt.com/trigger/error_occured/with/key/${iftttUser}`, {
           value1: e.response.status,
           value2: e.config.url,
+          value3: e.config && (e.config.data || e.config.params),
         })
         .catch(() => console.error('Notif Ifttt non envoyée'))
     )
