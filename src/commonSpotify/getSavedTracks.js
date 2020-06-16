@@ -1,4 +1,4 @@
-import { updateTracksGist } from '../commonLog'
+import { formatTrackToString, updateTracksGist } from '../commonLog'
 import getUserWithToken from './getUserWithToken'
 import Axios, { gestionErreur, getParams } from './utils'
 
@@ -26,9 +26,6 @@ const getSavedTracks = (user: Object, tracks?: Array = [], uri?: String = 'me/tr
         : Promise.resolve({ user, savedTracks: nextTracks })
     })
     .catch((e) => gestionErreur(e, `getSavedTracks ${user.name}`))
-
-const formatTrackToString = (t) =>
-  [t.raw.artists.map(({ name }) => name).join(', '), t.name, t.album_name, t.id].join('\t')
 
 export default (username: String) =>
   getUserWithToken(username)

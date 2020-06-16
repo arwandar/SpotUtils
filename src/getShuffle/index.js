@@ -1,5 +1,10 @@
 import { getUsernames } from '../commonBDD'
-import { updateExclusionGist } from '../commonLog'
+import {
+  formatExclude,
+  formatTrackToString,
+  updateExclusionGist,
+  updateTracksGist,
+} from '../commonLog'
 import { getSavedTracks } from '../commonSpotify'
 import generateBuggyTracks from './generateBuggyTracks'
 import generateSortedShuffle from './generateSortedShuffle'
@@ -10,8 +15,6 @@ const filterByUser = (username, t, excludedIds) =>
   t.owners.includes(username) ||
   (!excludedIds[username].tracks.includes(t.id) &&
     !excludedIds[username].artists.some((a) => t.artists_id.includes(a)))
-
-const formatExclude = (t) => `${t.artist_name} \\ ${t.name} \\ ${t.album_name}`
 
 const processTracks = (data) => {
   const tracksIndex = {}
@@ -70,8 +73,17 @@ export default (app) => {
       .then((data) => {
         console.log('get all tracks ok')
         tracks = processTracks(data)
-        return processAllUsers(usernames, (username) => getArtistsFromBlacklist(username))
+
+        return updateTracksGist(
+          'commun',
+          tracks
+            .filter(({ owners }) => owners.length === usernames.length)
+            .map(formatTrackToString)
+            .sort((a, b) => a.localeCompare(b))
+            .join('\n')
+        )
       })
+      .then(() => processAllUsers(usernames, (username) => getArtistsFromBlacklist(username)))
       .then((data) => {
         data.forEach(({ username, value: artists }) => {
           excludedIds[username].artists = artists.map(({ id }) => id)

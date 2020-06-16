@@ -83,3 +83,8 @@ export const updateTracksGist = (fileName, tracks): void =>
       },
     },
   })
+
+export const formatTrackToString = (t) =>
+  [t.raw.artists.map(({ name }) => name).join(', '), t.name, t.album_name, t.id].join('\t')
+
+export const formatExclude = (t) => `${t.artist_name} \\ ${t.name} \\ ${t.album_name}`
