@@ -37,7 +37,7 @@ const addToQueue = (content) => {
   queue.push(content)
   setTimeout(() => {
     startQueue()
-  }, 5000)
+  }, 60000)
 }
 
 const formatFiles = (excludes) => {

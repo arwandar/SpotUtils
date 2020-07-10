@@ -18,13 +18,27 @@ const filterByUser = (username, t, excludedIds) =>
 
 const processTracks = (data) => {
   const tracksIndex = {}
+  const linkedLiaison = {}
+
   data.forEach(({ username, value: tracks }) => {
     tracks.forEach((track) => {
+      if (track.raw.linked_from) linkedLiaison[track.id] = track.raw.id
+
       if (!tracksIndex[track.id]) tracksIndex[track.id] = { ...track, owners: [username] }
       else tracksIndex[track.id].owners.push(username)
     })
   })
-  return Object.values(tracksIndex)
+
+  Object.entries(linkedLiaison).forEach(([linked, listenable]) => {
+    if (tracksIndex[listenable]) {
+      tracksIndex[listenable].owners = [
+        ...new Set([...tracksIndex[linked].owners, ...tracksIndex[listenable].owners]),
+      ]
+      tracksIndex[linked] = undefined
+    }
+  })
+
+  return Object.values(tracksIndex).filter((track) => !!track)
 }
 
 const processAllUsers = (usernames, callback) => {
