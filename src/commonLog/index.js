@@ -28,7 +28,7 @@ const startQueue = () => {
       setTimeout(() => {
         isQueueStarted = false
         if (queue.length > 0) startQueue()
-      }, 5000)
+      }, 15000)
     })
     .catch((e) => console.log('CommonLog::ERREUR::e =>', e))
 }
@@ -37,7 +37,7 @@ const addToQueue = (content) => {
   queue.push(content)
   setTimeout(() => {
     startQueue()
-  }, 60000)
+  }, 15000)
 }
 
 const formatFiles = (excludes) => {
