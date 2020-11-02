@@ -65,6 +65,20 @@ const reducedShuffle = (tracks, excludedIds, playlistName) =>
     20
   )
 
+const reducedShuffleAll = (tracks, usernames, excludedIds, playlistName) =>
+  generateSortedShuffle(
+    'arwy',
+    tracks.filter((t) => {
+      let toKeep = true
+      usernames.forEach((username) => {
+        if (!filterByUser(username, t, excludedIds)) toKeep = false
+      })
+      return toKeep
+    }),
+    playlistName,
+    200
+  )
+
 export default (app) => {
   app.get('/api/shuffle', (req, res) => {
     console.log('shuffle')
@@ -145,6 +159,8 @@ export default (app) => {
           'shuffleAll'
         )
       )
+      .then(() => reducedShuffleAll(tracks, usernames, excludedIds, 'shuffleAll1'))
+      .then(() => reducedShuffleAll(tracks, usernames, excludedIds, 'shuffleAll2'))
       .then(() => reducedShuffle(tracks, excludedIds, 'morningShuffle'))
       .then(() => reducedShuffle(tracks, excludedIds, 'nightShuffle'))
       .then(() =>
