@@ -15,8 +15,12 @@ app.get('/api/getExclusions', (req, res) => {
 })
 
 app.get('/api/generateShuffle', async (req, res) => {
-  await generateShuffle()
-  await generateBuggyTracks()
+  try {
+    await generateShuffle()
+    await generateBuggyTracks()
+  } catch (error) {
+    console.error('generateShuffle ', error)
+  }
   return res.status(200).send('ok')
 })
 
