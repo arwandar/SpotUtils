@@ -1,28 +1,25 @@
 import express from 'express'
 
-import { initStorage, setIftttUser } from './commonBDD'
-import { initGist } from './commonLog'
-import getRadar from './getRadar'
-import getShuffle from './getShuffle'
-import getTop from './getTop'
+import config from '../config.json'
+import generateBuggyTracks from './generateBuggyTracks'
+import generateShuffle from './generateShuffle'
+import { User } from './sequelize'
+import exclusions from './updateBddFromSpotify/exclusions'
+import likedTracks from './updateBddFromSpotify/likedTracks'
 
-console.time('INIT FINIE')
-initStorage()
-  .then(initGist)
-  .then(() => {
-    const PORT = 3002
-    const app = express()
+const app = express()
+app.get('/api/getTracks', (req, res) => likedTracks().then(() => res.status(200).send('ok')))
 
-    getRadar(app)
-    getShuffle(app)
-    getTop(app)
+app.get('/api/getExclusions', (req, res) => {
+  exclusions().then(() => res.status(200).send('ok'))
+})
 
-    app.get('/api/ifttt/:user', (req, res) => {
-      setIftttUser(req.params.user).then(() => res.status(200).send('ok'))
-    })
+app.get('/api/generateShuffle', async (req, res) => {
+  await generateShuffle()
+  await generateBuggyTracks()
+  return res.status(200).send('ok')
+})
 
-    app.listen(PORT, () => {
-      console.log(`App listening to ${PORT}....`)
-      console.timeEnd('INIT FINIE')
-    })
-  })
+app.listen(config.express.port, () => {
+  console.log(`App listening to ${config.express.port}....`)
+})

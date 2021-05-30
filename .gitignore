@@ -1,7 +1,6 @@
 node_modules
 dist
-.node-persist
-yarn.lock
-.vscode
-yarn-error.log
-package-lock.json
+jsconfig.json
+config.json
+users.json
+playlists.json

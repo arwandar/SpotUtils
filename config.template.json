@@ -1,0 +1,16 @@
+{
+  "bdd": {
+    "host": "localhost",
+    "user": "spotutils",
+    "password": "",
+    "database": "spotutils"
+  },
+  "express": {
+    "port": 3002
+  },
+  "spotify": {
+    "redirect_uri": "",
+    "client_id": "",
+    "client_secret": ""
+  }
+}
