@@ -9,6 +9,7 @@ Sequelize.useCLS(namespace)
 const sequelize = new Sequelize(config.bdd.database, config.bdd.user, config.bdd.password, {
   host: config.bdd.host,
   dialect: 'mariadb',
+  logging: false,
 })
 
 export default sequelize

@@ -14,15 +14,15 @@ const User = sequelize.define(
       allowNull: false,
       type: DataTypes.STRING(30),
     },
-    refresh_token: {
-      allowNull: false,
-      type: DataTypes.TEXT,
-    },
-    access_token: {
-      allowNull: false,
-      type: DataTypes.TEXT,
-    },
-    expires_in: DataTypes.BIGINT,
+
+    refresh_token_1: DataTypes.TEXT,
+    access_token_1: DataTypes.TEXT,
+    expires_in_1: DataTypes.BIGINT,
+
+    refresh_token_2: DataTypes.TEXT,
+    access_token_2: DataTypes.TEXT,
+    expires_in_2: DataTypes.BIGINT,
+
     excludedTracksPlaylist: DataTypes.STRING,
     excludedArtistsPlaylist: DataTypes.STRING,
     buggyTracksPlaylist: DataTypes.STRING,

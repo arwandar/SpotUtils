@@ -1,5 +1,4 @@
-import { User, UserLikesArtist, sequelize, updateAccessToken } from '../../dist/sequelize'
-import { addArtists } from '../../dist/sequelize/utils/artist'
+import { User, UserLikesArtist, addArtists, sequelize, updateAccessToken } from '../sequelize'
 import { customAxios, getHeaders } from '../utils'
 
 const processArtists = async (user: Object, uri?: string = 'me/following?type=artist&limit=50') => {
