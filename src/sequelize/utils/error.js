@@ -15,7 +15,7 @@ export const addError = async (error: AxiosError) =>
 
 export const getLastError = async () =>
   Error.findOne({
-    attributes: ['url', 'code', 'message'],
+    attributes: ['url', 'code', 'message', 'createdAt'],
     order: [['createdAt', 'DESC']],
   })
 
