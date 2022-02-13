@@ -14,6 +14,7 @@ const endpoints = [
   { uri: '/api/getTracks', fct: likedTracks },
   { uri: '/api/getExclusions', fct: exclusions },
   { uri: '/api/generateShuffle', fct: generateShuffle },
+  { uri: '/api/generateBuggyTracks', fct: generateBuggyTracks },
   {
     uri: '/api/shuffle',
     fct: async () => {

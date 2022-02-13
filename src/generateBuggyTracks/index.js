@@ -45,7 +45,9 @@ const updateAudioFeatures = async () => {
 }
 
 const getDouble = async () => {
-  let tracksToAnalyse = await Track.findAll({ include: { model: User, as: 'owner' } })
+  let tracksToAnalyse = await Track.findAll({
+    include: { model: User, as: 'owner', required: true },
+  })
 
   const getSum = (track) =>
     [
