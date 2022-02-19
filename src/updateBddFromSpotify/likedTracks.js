@@ -41,6 +41,6 @@ export default async () => {
     })
   } catch (error) {
     console.error('likedTracks::error =>', error)
-    return Promise.reject()
+    return Promise.resolve()
   }
 }

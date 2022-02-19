@@ -72,6 +72,6 @@ export default async () => {
     })
   } catch (error) {
     console.error('exclusion::error =>', error)
-    return Promise.reject()
+    return Promise.resolve()
   }
 }

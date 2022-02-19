@@ -5,7 +5,7 @@ import generateBuggyTracks from './generateBuggyTracks'
 import generateRadar from './generateRadar'
 import generateShuffle from './generateShuffle'
 import login from './login'
-import { getErrorsNb, getLastError, reinitBdd } from './sequelize' // eslint-disable-line no-unused-vars
+import { reinitBdd } from './sequelize' // eslint-disable-line no-unused-vars
 import exclusions from './updateBddFromSpotify/exclusions'
 import followedArtists from './updateBddFromSpotify/followedArtists'
 import likedTracks from './updateBddFromSpotify/likedTracks'
@@ -52,13 +52,6 @@ endpoints.forEach(({ uri, fct }) => {
 })
 
 login(app)
-
-app.get('/errors', async (req, res) => {
-  const error = await getLastError()
-  const nb = await getErrorsNb()
-
-  return res.status(200).send({ error, nb })
-})
 
 app.listen(config.express.port, () => {
   console.log(`App listening to ${config.express.port}....`)
