@@ -8,6 +8,12 @@
   "express": {
     "port": 3002
   },
+  "mqtt": {
+    "host": "",
+    "port": "1883",
+    "username": "",
+    "password": ""
+  },
   "spotify_1": {
     "redirect_uri": "",
     "endpoint": "",
