@@ -1,3 +1,5 @@
+import './utils/mqtt'
+
 import express from 'express'
 
 import config from '../config.json'
@@ -9,7 +11,6 @@ import { reinitBdd } from './sequelize' // eslint-disable-line no-unused-vars
 import exclusions from './updateBddFromSpotify/exclusions'
 import followedArtists from './updateBddFromSpotify/followedArtists'
 import likedTracks from './updateBddFromSpotify/likedTracks'
-import { startMqtt } from './utils/mqtt'
 
 const endpoints = [
   { uri: '/api/getTracks', fct: likedTracks },
@@ -36,8 +37,6 @@ const endpoints = [
     },
   },
 ]
-
-startMqtt()
 
 const app = express()
 
