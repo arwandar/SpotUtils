@@ -43,7 +43,7 @@ endpoints.forEach(({ uri, fct }) => {
     try {
       console.log(uri)
       await fct()
-      return res.status(200).send('ok')
+      return res.status(200).send({ uri })
     } catch (error) {
       console.error(new Date().toISOString(), uri, error)
       return res.status(500).send({
