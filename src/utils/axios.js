@@ -10,7 +10,7 @@ customAxios.interceptors.response.use(
   (response) => response,
   (error) => {
     console.log('Pixelle::axios.js::14::error =>', error)
-    return Promise.reject(error)
+    return Promise.reject(error.toJSON())
   }
 )
 

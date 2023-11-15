@@ -30,6 +30,6 @@ export default async () => {
     })
   } catch (error) {
     console.error('followedArtists::error =>', error)
-    return Promise.reject()
+    return Promise.reject(error)
   }
 }
