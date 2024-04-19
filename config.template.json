@@ -1,10 +1,4 @@
 {
-  "bdd": {
-    "host": "localhost",
-    "user": "spotutils",
-    "password": "",
-    "database": "spotutils"
-  },
   "spotify_1": {
     "redirect_uri": "",
     "endpoint": "",

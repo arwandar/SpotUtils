@@ -1,14 +1,12 @@
+import exclusions from './updateBddFromSpotify/exclusions'
 import express from 'express'
-
-import config from '../config.json'
+import followedArtists from './updateBddFromSpotify/followedArtists'
 import generateBuggyTracks from './generateBuggyTracks'
 import generateRadar from './generateRadar'
 import generateShuffle from './generateShuffle'
+import likedTracks from './updateBddFromSpotify/likedTracks'
 import login from './login'
 import { reinitBdd } from './sequelize' // eslint-disable-line no-unused-vars
-import exclusions from './updateBddFromSpotify/exclusions'
-import followedArtists from './updateBddFromSpotify/followedArtists'
-import likedTracks from './updateBddFromSpotify/likedTracks'
 
 const endpoints = [
   { uri: '/api/getTracks', fct: likedTracks },
@@ -57,5 +55,5 @@ endpoints.forEach(({ uri, fct }) => {
 login(app)
 
 app.listen(3000, () => {
-  console.log(`App listening to ${config.express.port}....`)
+  console.log(`App listening to 3000....`)
 })

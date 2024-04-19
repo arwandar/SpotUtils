@@ -1,13 +1,11 @@
-import cls from 'cls-hooked'
 import { Sequelize } from 'sequelize'
-
-import config from '../../config.json'
+import cls from 'cls-hooked'
 
 const namespace = cls.createNamespace('namespace')
 Sequelize.useCLS(namespace)
 
-const sequelize = new Sequelize(config.bdd.database, config.bdd.user, config.bdd.password, {
-  host: config.bdd.host,
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
   dialect: 'mariadb',
   logging: false,
 })
