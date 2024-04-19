@@ -5,9 +5,6 @@
     "password": "",
     "database": "spotutils"
   },
-  "express": {
-    "port": 3002
-  },
   "spotify_1": {
     "redirect_uri": "",
     "endpoint": "",

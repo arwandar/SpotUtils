@@ -9,5 +9,5 @@ RUN npm install --production=false
 COPY . .
 # Don't forget to run the build after installing dependencies
 RUN npm run build
-EXPOSE 3002
+EXPOSE 3000
 CMD [ "npm", "serve" ]

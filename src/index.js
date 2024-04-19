@@ -56,6 +56,6 @@ endpoints.forEach(({ uri, fct }) => {
 
 login(app)
 
-app.listen(config.express.port, () => {
+app.listen(3000, () => {
   console.log(`App listening to ${config.express.port}....`)
 })
