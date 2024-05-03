@@ -5,3 +5,5 @@ config.json
 users.json
 playlists.json
 logs
+passdb
+.env

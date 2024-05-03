@@ -6,7 +6,7 @@ import generateRadar from './generateRadar'
 import generateShuffle from './generateShuffle'
 import likedTracks from './updateBddFromSpotify/likedTracks'
 import login from './login'
-import { reinitBdd } from './sequelize' // eslint-disable-line no-unused-vars
+import { sequelize } from './sequelize' // eslint-disable-line no-unused-vars
 
 const endpoints = [
   { uri: '/api/getTracks', fct: likedTracks },
@@ -54,6 +54,12 @@ endpoints.forEach(({ uri, fct }) => {
 
 login(app)
 
-app.listen(3000, () => {
+app.listen(3000, async () => {
   console.log(`App listening to 3000....`)
+  try {
+    await sequelize.authenticate()
+    console.log('Connection to DB has been established successfully.')
+  } catch (error) {
+    console.error('Unable to connect to the database:', error)
+  }
 })
