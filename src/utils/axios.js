@@ -1,12 +1,16 @@
 import axios from 'axios'
-import rax from 'retry-axios'
-
-rax.attach(axios)
+import axiosRetry from 'axios-retry'
 
 export const customAxios = axios.create({
   baseURL: 'https://api.spotify.com/v1/',
   headers: { post: { 'Content-Type': 'application/json' } },
   proxy: false,
+})
+
+axiosRetry(customAxios, {
+  retryDelay: axiosRetry.exponentialDelay,
+  retries: 5,
+  retryCondition: (error) => error && error.response && error.response.status === 429,
 })
 
 customAxios.defaults.raxConfig = {

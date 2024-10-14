@@ -1,33 +1,34 @@
 {
   "name": "spotutils-v3",
-  "version": "1.0.0",
+  "version": "3.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js -r dotenv/config",
     "build": "babel src --out-dir dist",
-    "serve": "node dist/index.js"
+    "serve": "node dist/index.js",
+    "postversion": "git push && git push --tags"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/cli": "^7.24.5",
-    "@babel/core": "^7.24.5",
-    "@babel/eslint-parser": "^7.24.5",
-    "@babel/node": "^7.23.9",
-    "@babel/preset-env": "^7.24.5",
-    "@babel/preset-flow": "^7.24.1",
+    "@babel/cli": "^7.25.7",
+    "@babel/core": "^7.25.8",
+    "@babel/eslint-parser": "^7.25.8",
+    "@babel/node": "^7.25.7",
+    "@babel/preset-env": "^7.25.8",
+    "@babel/preset-flow": "^7.25.7",
     "babel-plugin-import": "^1.13.8",
     "dotenv": "^16.4.5",
     "eslint": "^8.53.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-flowtype": "^8.0.3",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-sonarjs": "^0.25.1",
-    "flow-bin": "^0.235.1",
-    "nodemon": "^3.1.0",
-    "prettier": "^3.2.5"
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-sonarjs": "^2.0.3",
+    "flow-bin": "^0.248.1",
+    "nodemon": "^3.1.7",
+    "prettier": "^3.3.3"
   },
   "prettier": {
     "semi": false,
@@ -37,13 +38,13 @@
     "trailingComma": "es5"
   },
   "dependencies": {
-    "axios": "^1.6.8",
+    "axios": "^1.7.7",
+    "axios-retry": "^4.5.0",
     "cls-hooked": "^4.2.2",
-    "core-js": "^3.37.0",
+    "core-js": "^3.38.1",
     "date-fns": "^3.6.0",
-    "express": "^4.19.2",
-    "mariadb": "^3.3.0",
-    "retry-axios": "^3.1.3",
-    "sequelize": "^6.37.3"
+    "express": "^4.21.1",
+    "mariadb": "^3.3.2",
+    "sequelize": "^6.37.4"
   }
 }
