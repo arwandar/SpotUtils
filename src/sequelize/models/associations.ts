@@ -1,22 +1,21 @@
+import { Model, type InferAttributes, type InferCreationAttributes } from 'sequelize'
 import sequelize from '../sequelize'
 import Artist from './Artist.model'
 import Playlist from './Playlist.model'
 import Track from './Track.model'
 import User from './User.model'
 
-const UserLikesArtist = sequelize.define('UserLikesArtist', {}, { tableName: 'User_Likes_Artist' })
-const UserDislikesArtist = sequelize.define(
-  'UserDislikesArtist',
-  {},
-  { tableName: 'User_Dislikes_Artist' }
-)
+class UserLikesArtist extends Model<InferAttributes<UserLikesArtist>, InferCreationAttributes<UserLikesArtist>> { }
+UserLikesArtist.init({}, { sequelize, tableName: 'User_Likes_Artist' })
 
-const UserLikesTrack = sequelize.define('UserLikesTrack', {}, { tableName: 'User_Likes_Track' })
-const UserDislikesTrack = sequelize.define(
-  'UserDislikesTrack',
-  {},
-  { tableName: 'User_Dislikes_Track' }
-)
+class UserDislikesArtist extends Model<InferAttributes<UserDislikesArtist>, InferCreationAttributes<UserDislikesArtist>> { }
+UserDislikesArtist.init({}, { sequelize, tableName: 'User_Dislikes_Artist' })
+
+class UserLikesTrack extends Model<InferAttributes<UserLikesTrack>, InferCreationAttributes<UserLikesTrack>> { }
+UserLikesTrack.init({}, { sequelize, tableName: 'User_Likes_Track' })
+
+class UserDislikesTrack extends Model<InferAttributes<UserDislikesTrack>, InferCreationAttributes<UserDislikesTrack>> { }
+UserDislikesTrack.init({}, { sequelize, tableName: 'User_Dislikes_Track' })
 
 Artist.belongsToMany(Track, { through: 'Track_Artist' })
 
@@ -34,7 +33,6 @@ User.belongsToMany(Track, { as: 'excludedTracks', through: UserDislikesTrack })
 User.belongsToMany(Artist, { as: 'followedArtists', through: UserLikesArtist })
 User.belongsToMany(Artist, { as: 'excludedArtists', through: UserDislikesArtist })
 
-// User.hasMany(Playlist, { as: 'owner' })
 Playlist.belongsTo(User, { as: 'owner' })
 
 Playlist.belongsToMany(User, { as: 'filterBy', through: 'Playlist_IsFiltered_By_User' })

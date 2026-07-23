@@ -1,8 +1,8 @@
-import { customAxios, postHeaders } from './axios'
+import { customAxios, postHeaders } from './axios.js'
 
-import { updateAccessToken } from '../sequelize'
+import { updateAccessToken, User } from '../sequelize/index.js'
 
-export const addTracksToPlaylist = async (user, playlistId, trackUris) => {
+export const addTracksToPlaylist = async (user: User, playlistId: string, trackUris: string[]): Promise<void> => {
   if (trackUris.length === 0) return Promise.resolve()
 
   const updateUser = await updateAccessToken(user)
@@ -14,7 +14,7 @@ export const addTracksToPlaylist = async (user, playlistId, trackUris) => {
   return addTracksToPlaylist(updateUser, playlistId, trackUris)
 }
 
-export const refillPlaylist = async (user, playlistId, trackUris) => {
+export const refillPlaylist = async (user: User, playlistId: string, trackUris: string[]) => {
   const updateUser = await updateAccessToken(user)
   await customAxios.put(
     `playlists/${playlistId}/tracks`,

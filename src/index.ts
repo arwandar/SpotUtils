@@ -1,14 +1,15 @@
 import exclusions from './updateBddFromSpotify/exclusions'
 import express from 'express'
 import followedArtists from './updateBddFromSpotify/followedArtists'
-import generateBuggyTracks from './generateBuggyTracks'
-import generateRadar from './generateRadar'
-import generateShuffle from './generateShuffle'
+import generateBuggyTracks from './generateBuggyTracks/index'
+import generateRadar from './generateRadar/index'
+import generateShuffle from './generateShuffle/index'
 import likedTracks from './updateBddFromSpotify/likedTracks'
-import login from './login'
-import { sequelize } from './sequelize' // eslint-disable-line no-unused-vars
 
-const endpoints = [
+import { sequelize } from './sequelize'
+import login from './login'
+
+const endpoints: { uri: string; fct: () => Promise<void> }[] = [
   { uri: '/api/getTracks', fct: likedTracks },
   { uri: '/api/getExclusions', fct: exclusions },
   { uri: '/api/generateShuffle', fct: generateShuffle },

@@ -1,10 +1,23 @@
-/* eslint-disable no-await-in-loop */
 import { isAfter, subWeeks } from 'date-fns'
 
 import { Artist, User, updateAccessToken } from '../sequelize'
 import { customAxios, getParams, refillPlaylist } from '../utils'
 
-const processArtist = async (user, artist, nextUriApi, tracks = []) => {
+type SpotifyAlbumSummary = {
+  id: string
+  available_markets: string[]
+  release_date_precision: string
+  release_date: string
+}
+
+type RadarTrackResult = string[]
+
+const processArtist = async (
+  user: User,
+  artist: Artist,
+  nextUriApi?: string,
+  tracks: string[] = []
+): Promise<string[]> => {
   const uriApi = nextUriApi || `artists/${artist.id}/albums`
 
   const {
@@ -14,8 +27,7 @@ const processArtist = async (user, artist, nextUriApi, tracks = []) => {
     getParams({ limit: 50, include_groups: 'single,album,compilation' }, user, 2)
   )
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const album of albums) {
+  for (const album of albums as SpotifyAlbumSummary[]) {
     if (
       album.available_markets.includes('FR') &&
       album.release_date_precision === 'day' &&
@@ -25,39 +37,40 @@ const processArtist = async (user, artist, nextUriApi, tracks = []) => {
         `albums/${album.id}`,
         getParams({ market: 'FR', limit: 50 }, user, 2)
       )
-      tracks = [...tracks, ...data.tracks.items.map(({ uri }) => uri)] // eslint-disable-line no-param-reassign
+
+      tracks = [...tracks, ...data.tracks.items.map(({ uri }: { uri: string }) => uri)]
     }
   }
 
   return next ? processArtist(user, artist, next, tracks) : tracks
 }
 
-export default async () => {
+export default async (): Promise<void> => {
   const artists = await Artist.findAll({
     include: [{ model: User, as: 'followedBy', attributes: ['pseudo'], required: true }],
     order: ['name'],
   })
 
-  let user = await User.findOne()
-  user = await updateAccessToken(user, 2)
-  let tracks = []
+  const existingUser = await User.findOne()
+  if (!existingUser) throw new Error('User not found')
 
-  const processArtists = async () => {
+  const user = await updateAccessToken(existingUser, 2)
+  let tracks: RadarTrackResult = []
+
+  const processArtists = async (): Promise<void> => {
     const artist = artists.pop()
-    if (!artist) return Promise.resolve()
+    if (!artist) return
 
-    const res = await processArtist(user, artist)
-    tracks = [...tracks, ...res]
-    return processArtists()
+    const artistTracks = await processArtist(user, artist)
+    tracks = [...tracks, ...artistTracks]
+    await processArtists()
   }
 
   await processArtists()
 
   const users = await User.findAll()
-  // eslint-disable-next-line no-restricted-syntax
   for (const currentUser of users) {
+    if (!currentUser.radarPlaylist) continue
     await refillPlaylist(currentUser, currentUser.radarPlaylist, [...tracks])
   }
-
-  return Promise.resolve()
 }
